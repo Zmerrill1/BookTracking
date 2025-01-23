@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from passlib.context import CryptContext
 from db import get_session
 from typing import List
-from models import Book, BookCreate, BookRead, Genre, GenreCreate, UserCreate, UserBookStatus, UserBookStatusCreate, UserBookStatusRead, UserBase, UserResponse
+from models import Book, BookCreate, BookRead, Genre, GenreCreate, User, UserCreate, UserBookStatus, UserBookStatusCreate, UserBookStatusRead, UserResponse
 
 app = FastAPI()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -11,13 +11,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @app.post('/users/', response_model=UserResponse)
 def create_user(user: UserCreate, session: Session = Depends(get_session)):
-    hashed_password = pwd_context.has(user.password)
-    db_user = UserBase(
-        username=user.username,
-        email=user.email,
-        password_hash=hashed_password
-        )
-    
+    hashed_password = pwd_context.hash(user.password)
+    db_user = User.from_orm(user)
+    db_user.password = hashed_password
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
@@ -25,7 +21,7 @@ def create_user(user: UserCreate, session: Session = Depends(get_session)):
 
 @app.get('/users/', response_model=List[UserResponse])
 def get_users(session: Session= Depends(get_session)):
-    users = session.exec(select(UserCreate)).all()
+    users = session.exec(select(User)).all()
     return users
 
 @app.post('/books/', response_model=BookRead)
