@@ -1,0 +1,16 @@
+repos:
+  # Ruff hook for linting
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    rev: v0.9.3  # Use the latest version of Ruff
+    hooks:
+      - id: ruff
+        args: [--fix]  # Automatically fixes issues if possible
+
+  # Pre-commit's built-in hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0  # Use the latest version
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-added-large-files
+      - id: check-yaml
