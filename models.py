@@ -1,7 +1,7 @@
 from __future__ import annotations
-from sqlmodel import SQLModel, Field, Relationship 
+from sqlmodel import SQLModel, Field, Relationship
 from pydantic import EmailStr
-from typing import Optional, List
+from typing import List
 from datetime import datetime
 
 
@@ -9,14 +9,14 @@ class UserBase(SQLModel):
     username: str = Field(index=True, unique=True, nullable=False)
     email: str | None = Field(unique=True, nullable=True)
     created_at: datetime = Field(default_factory=datetime.utcnow)
-   
+
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     password_hash: str = Field(nullable=False)
     books: List["UserBookStatus"] = Relationship(back_populates='user')
 
 
-#Many-to-Many relationship table. 
+#Many-to-Many relationship table.
 class BookGenreLink(SQLModel, table=True):
     book_id: int | None = Field(default=None, foreign_key='book.id', primary_key=True)
     genre_id: int | None = Field(default=None, foreign_key='genre.id', primary_key=True)
@@ -24,10 +24,11 @@ class BookGenreLink(SQLModel, table=True):
 
 class BookBase(SQLModel):
     title: str
-    author: str
+    author: list[str] =[]
     description: str | None
     page_count: str | None
     rating: int | None = Field(default=None, ge=0, le=5)
+    publisher: str | None
     published_date: datetime | None
 
 class Book(BookBase, table=True):
@@ -56,7 +57,7 @@ class Genre(GenreBase, table=True):
     books: List[Book] = Relationship(back_populates='genres', link_model=BookGenreLink)
 
 #Pydantic models for API
-    
+
 class UserBookStatusCreate(SQLModel):
     book_id: int
     status: str

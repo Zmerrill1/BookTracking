@@ -1,19 +1,24 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlmodel import Session, select
 from passlib.context import CryptContext
 from db import get_session
 from typing import List
-from models import Book, BookCreate, BookRead, Genre, GenreCreate, User, UserCreate, UserBookStatus, UserBookStatusCreate, UserBookStatusRead, UserResponse
+from models import Book, BookCreate, BookRead, Genre, GenreCreate, UserCreate, UserBookStatus, UserBookStatusCreate, UserBookStatusRead, UserBase, UserResponse, User
+from services.google_books import search_books, get_book_details, clean_and_shorten_description
 
 app = FastAPI()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @app.post('/users/', response_model=UserResponse)
-def create_user(user: UserCreate, session: Session = Depends(get_session)):
-    hashed_password = pwd_context.hash(user.password)
-    db_user = User.from_orm(user)
-    db_user.password = hashed_password
+def create_user(user: User, session: Session = Depends(get_session)):
+    hashed_password = pwd_context.has(user.password)
+    db_user = UserBase(
+        username=user.username,
+        email=user.email,
+        password_hash=hashed_password
+        )
+
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
@@ -21,7 +26,7 @@ def create_user(user: UserCreate, session: Session = Depends(get_session)):
 
 @app.get('/users/', response_model=List[UserResponse])
 def get_users(session: Session= Depends(get_session)):
-    users = session.exec(select(User)).all()
+    users = session.exec(select(UserCreate)).all()
     return users
 
 @app.post('/books/', response_model=BookRead)
@@ -87,3 +92,43 @@ def delete_user_book(id: int, session: Session = Depends(get_session)):
     session.delete(db_user_book)
     session.commit()
     return {"detail": "UserBookStatus deleted"}
+
+@app.get('/google-books/search/', response_model=List[dict])
+def search_google_books(term: str = Query(..., description="Search term for Google Books")):
+    books = search_books(term)
+    if not books:
+        raise HTTPException(status_code=404, detail="No books found.")
+    return [{"id": book_id, "title": title} for book_id, title in books]
+
+@app.get('/google-books/details/{book_id}/', response_model=dict)
+def get_google_book_details(book_id: str):
+    details = get_book_details(book_id)
+    if not details:
+        raise HTTPException(status_code=404, detail="Book not found")
+    return {
+        "title": details.get("title", "N/A"),
+        "subtitle": details.get("subtitle", "N/A"),
+        "authors": details.get("authors", []),
+        "publisher": details.get("publisher", "N/A"),
+        "published_date": details.get("published_date", "N/A"),
+        "description": clean_and_shorten_description(details.get("description", "N/A")),
+
+    }
+
+@app.post('/google-books/save/{book_id}/', response_model=BookRead)
+def save_google_book(book_id: str, session: Session = Depends(get_session)):
+    details = get_book_details(book_id)
+    if not details:
+        raise HTTPException(status_code=404, detail="Book not found in Google Books.")
+
+    db_book = Book(
+        title=details.get("title", "N/A"),
+        description=clean_and_shorten_description(details.get("description", "")),
+        authors=details.get("authors", []),
+        publisher=details.get("publisher", "N/A"),
+        published_date=details.get("published_date", "N/A"),
+    )
+    session.add(db_book)
+    session.commit()
+    session.refresh(db_book)
+    return db_book

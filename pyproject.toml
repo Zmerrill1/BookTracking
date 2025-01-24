@@ -39,4 +39,7 @@ dependencies = [
     "typing_extensions==4.12.2",
     "pydantic[email]>=2.10.5",
     "bcrypt>=4.2.1",
+    "python-dotenv>=1.0.1",
+    "pre-commit>=4.1.0",
+    "ruff>=0.9.3",
 ]
