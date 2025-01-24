@@ -5,7 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "fastapi>=0.115.6",
+    "fastapi[standard]>=0.115.6",
     "uvicorn>=0.34.0",
     "sqlalchemy==2.0.37",
     "sqlmodel==0.0.22",
@@ -38,4 +38,5 @@ dependencies = [
     "typer==0.15.1",
     "typing_extensions==4.12.2",
     "pydantic[email]>=2.10.5",
+    "bcrypt>=4.2.1",
 ]
