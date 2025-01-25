@@ -1,11 +1,8 @@
-import os
-
-import dotenv
+from decouple import config
 from sqlmodel import create_engine, Session, SQLModel
 
-dotenv.load_dotenv()
-
-engine = create_engine(os.getenv("DATABASE_URL"))
+DATABASE_URL = config("DATABASE_URL")
+engine = create_engine(DATABASE_URL)
 
 def get_session():
     with Session(engine) as session:
