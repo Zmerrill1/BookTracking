@@ -9,6 +9,7 @@ from models import (
     BookRead,
     User,
     UserBookStatus,
+    UserBookStatusUpdate,
     UserCreate,
     UserRead,
 )
@@ -86,32 +87,51 @@ def get_user_books(
     user_books = session.exec(query).all()
     return user_books
 
-#Work on the below to get endpoints working
-@app.patch("/user-books/{id}/")
+
+@app.patch("/user-books/{user_id}/{book_id}/", response_model=UserBookStatus)
 def update_user_book(
-    id: int, updates, session: Session = Depends(get_session)
-):
-    db_user_book = session.get(UserBookStatus, id)
+    user_id: int,
+    book_id: int,
+    updates: UserBookStatusUpdate,
+    session: Session = Depends(get_session)
+    ):
+
+    db_user_book = session.exec(
+        select(UserBookStatus)
+        .where(UserBookStatus.user_id == user_id)
+        .where(UserBookStatus.book_id == book_id)
+        ).first()
+
+
     if db_user_book is None:
         raise HTTPException(status_code=404, detail="UserBookStatus not found.")
     for key, value in updates.model_dump(exclude_unset=True).items():
         setattr(db_user_book, key, value)
+
     session.add(db_user_book)
     session.commit()
     session.refresh(db_user_book)
     return db_user_book
 
 
-@app.delete("/user-books/{id}/")
-def delete_user_book(id: int, session: Session = Depends(get_session)):
-    db_user_book = session.get(UserBookStatus, id)
+@app.delete("/user-books/{user_id}/{book_id}/", status_code=204)
+def delete_user_book(
+    user_id: int,
+    book_id: int,
+    session: Session = Depends(get_session)
+    ):
+    db_user_book = session.exec(
+        select(UserBookStatus)
+        .where(UserBookStatus.user_id == user_id)
+        .where(UserBookStatus.book_id == book_id)
+        ).first()
     if db_user_book is None:
         raise HTTPException(status_code=404, detail="UserBookStatus not found.")
     session.delete(db_user_book)
     session.commit()
     return {"detail": "UserBookStatus deleted"}
 
-
+#Work on the below to get endpoints working // Integrating the Google Books API
 @app.get("/google-books/search/")
 def search_google_books(
     term: str = Query(..., description="Search term for Google Books")
