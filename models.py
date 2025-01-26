@@ -1,12 +1,17 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import List, Optional
 from datetime import datetime
+from enum import Enum
 
+class StatusEnum(str, Enum):
+    READING = 'reading'
+    COMPLETED = 'completed'
+    TO_READ = 'to_read'
 
 class UserBookStatus(SQLModel, table=True):
-    user_id: int = Field(foreign_key="user.id", primary_key=True)
-    book_id: int = Field(foreign_key="book.id", primary_key=True)
-    status: str = Field(nullable=False)
+    user_id: int = Field(foreign_key="user.id", primary_key=True, index=True)
+    book_id: int = Field(foreign_key="book.id", primary_key=True, index=True)
+    status: StatusEnum = Field(nullable=False, index=True)
     rating: Optional[int] = Field(default=None)
     notes: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -57,4 +62,3 @@ class BookCreate(BookBase):
 
 class BookRead(BookBase):
     id: int
-

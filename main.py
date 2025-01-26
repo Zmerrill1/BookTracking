@@ -65,9 +65,9 @@ def get_books(session: Session = Depends(get_session)):
     return books
 
 
-@app.post("/user-books/")
+@app.post("/user-books/", response_model=UserBookStatus)
 def add_user_book(
-    user_book, session: Session = Depends(get_session)
+    user_book: UserBookStatus, session: Session = Depends(get_session)
 ):
     db_user_book = UserBookStatus(**user_book.model_dump())
     session.add(db_user_book)
@@ -76,7 +76,7 @@ def add_user_book(
     return db_user_book
 
 
-@app.get("/user-books/")
+@app.get("/user-books/", response_model=list[UserBookStatus])
 def get_user_books(
     user_id: int, status: str = None, session: Session = Depends(get_session)
 ):
@@ -86,7 +86,7 @@ def get_user_books(
     user_books = session.exec(query).all()
     return user_books
 
-
+#Work on the below to get endpoints working
 @app.patch("/user-books/{id}/")
 def update_user_book(
     id: int, updates, session: Session = Depends(get_session)
