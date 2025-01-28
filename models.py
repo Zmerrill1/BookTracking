@@ -63,8 +63,17 @@ class BookCreate(BookBase):
 class BookRead(BookBase):
     id: int
 
-class UserBookStatusUpdate(SQLModel):
-    status: Optional[StatusEnum]
-    rating: Optional[int]
-    notes: Optional[str]
+class UserBookStatusUpdate(UserBookStatus):
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+
+class BookSearchResult(SQLModel):
+    id: str
+    title: str
+
+class BookDetails(SQLModel):
+    title: str
+    subtitle: str
+    authors: list[str]
+    publisher: str
+    published_date: datetime
+    description: str

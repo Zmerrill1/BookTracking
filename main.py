@@ -12,6 +12,8 @@ from models import (
     UserBookStatusUpdate,
     UserCreate,
     UserRead,
+    BookSearchResult,
+    BookDetails,
 )
 from services.google_books import (
     search_books,
@@ -131,44 +133,46 @@ def delete_user_book(
     session.commit()
     return {"detail": "UserBookStatus deleted"}
 
-#Work on the below to get endpoints working // Integrating the Google Books API
-@app.get("/google-books/search/")
+
+@app.get("/google-books/search/", response_model=list[BookSearchResult])
 def search_google_books(
-    term: str = Query(..., description="Search term for Google Books")
+    term: str = Query(..., min_length=1, max_length=100, description="Search term for Google Books")
 ):
+    # print(f'Received term: {term}') #Debug: verifying the input
     books = search_books(term)
+    # print(f'Books from API: {books}') #Debug: checking the results from search_books
     if not books:
-        raise HTTPException(status_code=404, detail="No books found.")
+        raise HTTPException(status_code=404, detail="No books found for the search term '{term}'.")
     return [{"id": book_id, "title": title} for book_id, title in books]
 
 
-@app.get("/google-books/details/{book_id}/")
+@app.get("/google-books/details/{book_id}/", response_model=BookDetails)
 def get_google_book_details(book_id: str):
     details = get_book_details(book_id)
     if not details:
-        raise HTTPException(status_code=404, detail="Book not found")
+        raise HTTPException(status_code=404, detail="Book with ID: '{book_id}' not found.")
     return {
         "title": details.get("title", "N/A"),
         "subtitle": details.get("subtitle", "N/A"),
         "authors": details.get("authors", []),
         "publisher": details.get("publisher", "N/A"),
-        "published_date": details.get("published_date", "N/A"),
+        "published_date": details.get("publishedDate", "N/A"),
         "description": clean_and_shorten_description(details.get("description", "N/A")),
     }
 
 
-@app.post("/google-books/save/{book_id}/")
+@app.post("/google-books/{book_id}/save")
 def save_google_book(book_id: str, session: Session = Depends(get_session)):
     details = get_book_details(book_id)
     if not details:
-        raise HTTPException(status_code=404, detail="Book not found in Google Books.")
+        raise HTTPException(status_code=404, detail="Book with ID: '{book_id}' not found.")
 
     db_book = Book(
         title=details.get("title", "N/A"),
         description=clean_and_shorten_description(details.get("description", "")),
         authors=details.get("authors", []),
         publisher=details.get("publisher", "N/A"),
-        published_date=details.get("published_date", "N/A"),
+        published_date=details.get("publishedDate", "N/A"),
     )
     session.add(db_book)
     session.commit()
