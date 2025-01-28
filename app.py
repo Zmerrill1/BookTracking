@@ -15,7 +15,7 @@ if st.button("Search"):
     if search_query:
         with st.spinner("Searching for books..."):
             try:
-                response = requests.get(API_URL, params={"q": search_query})
+                response = requests.get(API_URL, params={"term": search_query})
                 if response.status_code == 200:
                     books = response.json()
                     st.success(f"Found {len(books)} books:")

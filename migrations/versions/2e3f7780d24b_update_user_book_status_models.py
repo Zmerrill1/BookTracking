@@ -1,7 +1,7 @@
 """Update user book status models
 
 Revision ID: 2e3f7780d24b
-Revises: ec41c43a570c
+Revises: 2ab73586da75
 Create Date: 2025-01-25 17:33:21.022588
 
 """
@@ -13,7 +13,7 @@ from sqlalchemy.dialects.postgresql import ENUM
 
 # revision identifiers, used by Alembic.
 revision: str = '2e3f7780d24b'
-down_revision: Union[str, None] = 'ec41c43a570c'
+down_revision: Union[str, None] = '2ab73586da75'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
