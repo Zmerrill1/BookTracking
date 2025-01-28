@@ -10,18 +10,25 @@ def search_books(term: str):
     """Search books by term"""
 
     query = SEARCH_URL.format(term)
+    # print(f'SEARCH_URL: {query}') #Debug: Checking the url for accuracy
     response = httpx.get(query)
+
+    # print(f'Response Status: {response.status_code}') #Debug Checking the status code
+    # print(f'Response JSON: {response.json()}') #Debug: Checking JSON response for valid items
     response.raise_for_status()
 
     books = []
     for item in response.json().get("items", []):
+        print(f'Processing item: {item}') #Debug: logging each item
         try:
             google_id = item["id"]
-            title = item["volumneInfo"]["title"]
+            title = item["volumeInfo"]["title"]
             books.append((google_id, title))
-        except KeyError:
+        except KeyError as e:
+            print(f'Skipping item due to missing key: {e}') #Debug: log skipped items
             continue
 
+    print(f'Final books list: {books}') #Debug: Log the final books list
     return books
 
 def get_book_details(book_id: str):
