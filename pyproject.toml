@@ -42,4 +42,6 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "pre-commit>=4.1.0",
     "ruff>=0.9.3",
+    "psycopg2>=2.9.10",
+    "streamlit>=1.41.1",
 ]
