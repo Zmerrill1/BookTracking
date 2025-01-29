@@ -22,8 +22,16 @@ def search_books(term: str):
         print(f'Processing item: {item}') #Debug: logging each item
         try:
             google_id = item["id"]
-            title = item["volumeInfo"]["title"]
-            books.append((google_id, title))
+            volume_info = item.get("volumeInfo", {})
+            title = volume_info.get("title", "Unknown Title")
+            authors = volume_info.get("authors", ["Uknown Author"])
+            published_date = volume_info.get("publishedDate", "Uknown Date")
+            books.append({
+                "google_id": google_id,
+                "title": title,
+                "authors": authors,
+                "published_date": published_date
+            })
         except KeyError as e:
             print(f'Skipping item due to missing key: {e}') #Debug: log skipped items
             continue
