@@ -15,6 +15,7 @@ from models import (
     BookSearchResult,
     BookDetails,
     SaveBookRequest,
+    StatusEnum
 )
 from services.google_books import (
     search_books,
@@ -180,7 +181,7 @@ def save_google_book(book_id: str, request: SaveBookRequest, session: Session = 
         raise HTTPException(status_code=404, detail="Book with ID: '{book_id}' not found.")
 
     db_book=session.exec(select(Book).where(Book.title == details["title"])).first() #checking if the book exists in the db
-    if not db_book:
+    if db_book is None:
         db_book = Book(
             title=details.get("title", "N/A"),
             description=clean_and_shorten_description(details.get("description", "")),
@@ -188,9 +189,9 @@ def save_google_book(book_id: str, request: SaveBookRequest, session: Session = 
             publisher=details.get("publisher", "N/A"),
             published_date=details.get("publishedDate", "N/A"),
         )
-    session.add(db_book)
-    session.commit()
-    session.refresh(db_book)
+        session.add(db_book)
+        session.commit()
+        session.refresh(db_book)
 
     db_user_book = session.exec(
         select(UserBookStatus).where(
@@ -198,15 +199,15 @@ def save_google_book(book_id: str, request: SaveBookRequest, session: Session = 
         )
     ).first()
 
-    if db_user_book:
+    if db_user_book is None:
+        user_book_status = UserBookStatus(
+            user_id=user_id,
+            book_id=db_book.id,
+            status=StatusEnum.TO_READ,
+        )
+        session.add(user_book_status)
+        session.commit()
+        session.refresh(user_book_status)
+        return user_book_status
+    else:
         raise HTTPException(status_code=400, detail="Book is already saved by user.")
-
-    user_book_status = UserBookStatus(
-        user_id=user_id,
-        book_id=db_book.id,
-        status="TO_READ",
-    )
-    session.add(user_book_status)
-    session.commit()
-    session.refresh(user_book_status)
-    return user_book_status

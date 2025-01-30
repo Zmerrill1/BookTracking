@@ -5,11 +5,18 @@ from decouple import config
 st.set_page_config(page_title="Book Tracker", layout="centered")
 st.title("📚 Book Tracker and Recommendations")
 
-# BACKEND API URL
+
 API_URL = config("API_URL")
+GOOGLE_BOOKS_SEARCH_URL = f"{API_URL}/google-books/search/"
 
 # Simulated user_id (Replace this with actual authentication later)
 USER_ID = 1
+
+st.sidebar.title("Navigation")
+page = st.sidebar.radio("Go to", ["Search Books", "Saved Books"])
+
+if page == "Saved Books":
+    st.switch_page("pages/saved_books.py")
 
 # Ensure session state variables exist
 if "saved_book_id" not in st.session_state:
@@ -25,13 +32,13 @@ def save_book(book_id):
 
 # Search form
 st.header("Search for Books")
-search_query = st.text_input("Enter book title or keyword")
+search_query = st.text_input("Enter book title, author, or keyword")
 
 if st.button("Search"):
     if search_query:
         with st.spinner("Searching for books..."):
             try:
-                response = requests.get(f"{API_URL}/google-books/search/", params={"term": search_query})
+                response = requests.get(GOOGLE_BOOKS_SEARCH_URL, params={"term": search_query})
                 if response.status_code == 200:
                     books = response.json()
                     st.success(f"Found {len(books)} books:")
@@ -66,21 +73,18 @@ if st.session_state.save_clicked and st.session_state.saved_book_id:
     book_id = st.session_state.saved_book_id
     st.write(f"Debug: Sending save request for Book ID: {book_id}")
 
-    try:
-        save_response = requests.post(
-            f"{API_URL}/google-books/{book_id}/save",
-            json={"user_id": USER_ID}
-        )
+    save_response = requests.post(
+        f"{API_URL}/google-books/{book_id}/save",
+        json={"user_id": USER_ID}
+    )
 
-        st.write(f"Debug: Response Status Code: {save_response.status_code}")
-        st.write(f"Debug: Response Text: {save_response.text}")
+    st.write(f"Debug: Response Status Code: {save_response.status_code}")
+    st.write(f"Debug: Response Text: {save_response.text}")
 
-        if save_response.status_code == 200:
-            st.success("Book saved successfully!")
-        else:
-            st.error(f"Failed to save book: {save_response.text}")
-    except Exception as e:
-        st.error(f"API Request Error: {e}")
+    if save_response.ok:
+        st.success("Book saved successfully!")
+    else:
+        st.error(f"Failed to save book: {save_response.text}")
 
     # Reset session state
     st.session_state.saved_book_id = None
