@@ -14,6 +14,8 @@ from models import (
     UserRead,
     BookSearchResult,
     BookDetails,
+    SaveBookRequest,
+    StatusEnum
 )
 from services.google_books import (
     search_books,
@@ -143,7 +145,15 @@ def search_google_books(
     # print(f'Books from API: {books}') #Debug: checking the results from search_books
     if not books:
         raise HTTPException(status_code=404, detail="No books found for the search term '{term}'.")
-    return [{"id": book_id, "title": title} for book_id, title in books]
+    return [
+        {
+            "id": book["google_id"],
+            "title": book["title"],
+            "authors": book["authors"],
+            "published_date": book["published_date"],
+            }
+            for book in books
+    ]
 
 
 @app.get("/google-books/details/{book_id}/", response_model=BookDetails)
@@ -162,19 +172,42 @@ def get_google_book_details(book_id: str):
 
 
 @app.post("/google-books/{book_id}/save")
-def save_google_book(book_id: str, session: Session = Depends(get_session)):
+def save_google_book(book_id: str, request: SaveBookRequest, session: Session = Depends(get_session)):
+    user_id = request.user_id
+    print(f'Recieve Dave Reques: BookID ={book_id}, UserID={user_id}')
+
     details = get_book_details(book_id)
     if not details:
         raise HTTPException(status_code=404, detail="Book with ID: '{book_id}' not found.")
 
-    db_book = Book(
-        title=details.get("title", "N/A"),
-        description=clean_and_shorten_description(details.get("description", "")),
-        authors=details.get("authors", []),
-        publisher=details.get("publisher", "N/A"),
-        published_date=details.get("publishedDate", "N/A"),
-    )
-    session.add(db_book)
-    session.commit()
-    session.refresh(db_book)
-    return db_book
+    db_book=session.exec(select(Book).where(Book.title == details["title"])).first() #checking if the book exists in the db
+    if db_book is None:
+        db_book = Book(
+            title=details.get("title", "N/A"),
+            description=clean_and_shorten_description(details.get("description", "")),
+            authors=details.get("authors", []),
+            publisher=details.get("publisher", "N/A"),
+            published_date=details.get("publishedDate", "N/A"),
+        )
+        session.add(db_book)
+        session.commit()
+        session.refresh(db_book)
+
+    db_user_book = session.exec(
+        select(UserBookStatus).where(
+            (UserBookStatus.user_id == user_id) & (UserBookStatus.book_id == db_book.id)
+        )
+    ).first()
+
+    if db_user_book is None:
+        user_book_status = UserBookStatus(
+            user_id=user_id,
+            book_id=db_book.id,
+            status=StatusEnum.TO_READ,
+        )
+        session.add(user_book_status)
+        session.commit()
+        session.refresh(user_book_status)
+        return user_book_status
+    else:
+        raise HTTPException(status_code=400, detail="Book is already saved by user.")

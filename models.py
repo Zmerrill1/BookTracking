@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
+from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 from enum import Enum
@@ -69,6 +70,8 @@ class UserBookStatusUpdate(UserBookStatus):
 class BookSearchResult(SQLModel):
     id: str
     title: str
+    authors: List[str] = ["Uknown Author"]
+    published_date: str = "Uknown Date"
 
 class BookDetails(SQLModel):
     title: str
@@ -77,3 +80,6 @@ class BookDetails(SQLModel):
     publisher: str
     published_date: datetime
     description: str
+
+class SaveBookRequest(BaseModel):
+    user_id: int
