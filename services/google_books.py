@@ -16,20 +16,17 @@ def search_books(term: str):
 
     books = []
     for item in response.json().get("items", []):
+        # TODO: need to already return image url here?
         google_id = item.get("id", "Unknown ID")
         volume_info = item.get("volumeInfo", {})
         title = volume_info.get("title", "Unknown Title")
         authors = volume_info.get("authors", ["Uknown Author"])
         published_date = volume_info.get("publishedDate", "Uknown Date")
-        image_links = volume_info.get("imageLinks", {})
-        cover_image = image_links.get("thumbnail")
-
         books.append({
             "google_id": google_id,
             "title": title,
             "authors": authors,
             "published_date": published_date,
-            "cover_image": cover_image,
         })
 
     return books
