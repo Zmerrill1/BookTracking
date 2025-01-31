@@ -1,8 +1,8 @@
-"""Updated google models
+"""Adjusting models for cover image
 
-Revision ID: 676463792f33
-Revises: 2e3f7780d24b
-Create Date: 2025-01-28 19:34:53.208260
+Revision ID: 6126fe788844
+Revises: 2868dc61d965
+Create Date: 2025-01-30 19:08:13.503189
 
 """
 from typing import Sequence, Union
@@ -10,8 +10,8 @@ from typing import Sequence, Union
 
 
 # revision identifiers, used by Alembic.
-revision: str = '676463792f33'
-down_revision: Union[str, None] = '2e3f7780d24b'
+revision: str = '6126fe788844'
+down_revision: Union[str, None] = '2868dc61d965'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

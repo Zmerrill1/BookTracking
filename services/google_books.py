@@ -2,6 +2,7 @@ import textwrap
 from bs4 import BeautifulSoup
 import httpx
 
+
 BASE_URL = "https://www.googleapis.com/books/v1/volumes"
 BOOK_URL = BASE_URL + "/{}"
 SEARCH_URL = BASE_URL + "?q={}&langRestrict=en"
@@ -10,31 +11,27 @@ def search_books(term: str):
     """Search books by term"""
 
     query = SEARCH_URL.format(term)
-    # print(f'SEARCH_URL: {query}') #Debug: Checking the url for accuracy
     response = httpx.get(query)
-
-    # print(f'Response Status: {response.status_code}') #Debug Checking the status code
-    # print(f'Response JSON: {response.json()}') #Debug: Checking JSON response for valid items
     response.raise_for_status()
 
     books = []
     for item in response.json().get("items", []):
-        print(f'Processing item: {item}') #Debug: logging each item
-
         google_id = item.get("id", "Unknown ID")
         volume_info = item.get("volumeInfo", {})
         title = volume_info.get("title", "Unknown Title")
         authors = volume_info.get("authors", ["Uknown Author"])
         published_date = volume_info.get("publishedDate", "Uknown Date")
+        image_links = volume_info.get("imageLinks", {})
+        cover_image = image_links.get("thumbnail")
+
         books.append({
             "google_id": google_id,
             "title": title,
             "authors": authors,
-            "published_date": published_date
+            "published_date": published_date,
+            "cover_image": cover_image,
         })
 
-
-    print(f'Final books list: {books}') #Debug: Log the final books list
     return books
 
 def get_book_details(book_id: str):

@@ -48,14 +48,23 @@ class BookBase(SQLModel):
     authors: Optional[str]
     publisher: Optional[str]
     published_date: Optional[datetime]
+    bookid: Optional[str]
+    cover_image: Optional[str]
 
 
 class Book(BookBase, table=True):
     id: int = Field(default=None, primary_key=True)
+    bookid: str = Field(index=True, unique=True)
+    cover_image: Optional[str] = Field(default=None)
+
     users: List[User] = Relationship(
         back_populates="books", link_model=UserBookStatus
     )
 
+@property
+def cover_image_url(self) -> Optional[str]:
+    if self.bookid:
+        return f"https://books.google.com/books/content?id={self.bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
 
 class BookCreate(BookBase):
     pass
@@ -69,17 +78,20 @@ class UserBookStatusUpdate(UserBookStatus):
 
 class BookSearchResult(SQLModel):
     id: str
+    google_id: str
     title: str
-    authors: List[str] = ["Uknown Author"]
+    authors: List[str] = Field(default_factory=lambda: ["Uknown Author"])
     published_date: str = "Uknown Date"
+    cover_image: Optional[str]
 
 class BookDetails(SQLModel):
     title: str
     subtitle: str
-    authors: list[str]
+    authors: List[str]
     publisher: str
     published_date: datetime
     description: str
+    cover_image: Optional[str]
 
 class SaveBookRequest(BaseModel):
     user_id: int
