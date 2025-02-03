@@ -140,19 +140,19 @@ def delete_user_book(
 def search_google_books(
     term: str = Query(..., min_length=1, max_length=100, description="Search term for Google Books")
 ):
-
     books = search_books(term)
-
     if not books:
         raise HTTPException(status_code=404, detail=f"No books found for the search term '{term}'.")
     return [
         {
+            # TODO: with google id we can also make the cover image url here
             "id": book["google_id"],
+            # TODO: can we remove google_id?
             "google_id": book["google_id"],
             "title": book["title"],
             "authors": book["authors"],
             "published_date": book["published_date"],
-            "cover_image": book["cover_image"],
+            "cover_image_url": book["cover_image_url"],
             }
             for book in books
     ]
@@ -180,13 +180,6 @@ def save_google_book(book_id: str, request: SaveBookRequest, session: Session = 
     if not details:
         raise HTTPException(status_code=404, detail="Book with ID: '{book_id}' not found.")
 
-    image_links = details.get("imageLinks", {})
-    cover_image_url = image_links.get("thumbnail")
-
-    if not cover_image_url:
-        cover_image_url = f"https://books.google.com/books/content?id={book_id}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
-
-
     db_book=session.exec(select(Book).where(Book.title == details["title"])).first() #checking if the book exists in the db
     if db_book is None:
         db_book = Book(
@@ -196,7 +189,6 @@ def save_google_book(book_id: str, request: SaveBookRequest, session: Session = 
             authors=details.get("authors", []),
             publisher=details.get("publisher", "N/A"),
             published_date=details.get("publishedDate", "N/A"),
-            cover_image_url=cover_image_url,
         )
         session.add(db_book)
         session.commit()
