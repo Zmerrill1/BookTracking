@@ -140,17 +140,19 @@ def delete_user_book(
 def search_google_books(
     term: str = Query(..., min_length=1, max_length=100, description="Search term for Google Books")
 ):
-    # print(f'Received term: {term}') #Debug: verifying the input
     books = search_books(term)
-    # print(f'Books from API: {books}') #Debug: checking the results from search_books
     if not books:
-        raise HTTPException(status_code=404, detail="No books found for the search term '{term}'.")
+        raise HTTPException(status_code=404, detail=f"No books found for the search term '{term}'.")
     return [
         {
+            # TODO: with google id we can also make the cover image url here
             "id": book["google_id"],
+            # TODO: can we remove google_id?
+            "google_id": book["google_id"],
             "title": book["title"],
             "authors": book["authors"],
             "published_date": book["published_date"],
+            "cover_image_url": book["cover_image_url"],
             }
             for book in books
     ]
@@ -174,8 +176,6 @@ def get_google_book_details(book_id: str):
 @app.post("/google-books/{book_id}/save")
 def save_google_book(book_id: str, request: SaveBookRequest, session: Session = Depends(get_session)):
     user_id = request.user_id
-    print(f'Recieve Dave Reques: BookID ={book_id}, UserID={user_id}')
-
     details = get_book_details(book_id)
     if not details:
         raise HTTPException(status_code=404, detail="Book with ID: '{book_id}' not found.")
@@ -183,6 +183,7 @@ def save_google_book(book_id: str, request: SaveBookRequest, session: Session = 
     db_book=session.exec(select(Book).where(Book.title == details["title"])).first() #checking if the book exists in the db
     if db_book is None:
         db_book = Book(
+            bookid = book_id,
             title=details.get("title", "N/A"),
             description=clean_and_shorten_description(details.get("description", "")),
             authors=details.get("authors", []),

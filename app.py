@@ -44,7 +44,8 @@ if st.button("Search"):
                     st.success(f"Found {len(books)} books:")
 
                     for book in books:
-                        st.subheader(book.get("title", "Unknown Title"))
+                        st.image(book["cover_image_url"], width=150, caption=book["title"])
+                        st.subheader(book["title"])
                         st.write(f"**Authors:** {', '.join(book.get('authors', ['Unknown']))}")
                         st.write(f"**Published Date:** {book.get('published_date', 'N/A')}")
                         st.write(f"[More Info]({book.get('info_link', '#')})")

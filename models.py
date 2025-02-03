@@ -4,6 +4,8 @@ from typing import List, Optional
 from datetime import datetime
 from enum import Enum
 
+BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
+
 class StatusEnum(str, Enum):
     READING = 'reading'
     COMPLETED = 'completed'
@@ -44,6 +46,7 @@ class UserRead(UserBase):
 
 class BookBase(SQLModel):
     title: str
+    bookid: str
     description: Optional[str]
     authors: Optional[str]
     publisher: Optional[str]
@@ -52,6 +55,8 @@ class BookBase(SQLModel):
 
 class Book(BookBase, table=True):
     id: int = Field(default=None, primary_key=True)
+    bookid: str = Field(index=True, unique=True)
+
     users: List[User] = Relationship(
         back_populates="books", link_model=UserBookStatus
     )
@@ -64,22 +69,32 @@ class BookCreate(BookBase):
 class BookRead(BookBase):
     id: int
 
+    @property
+    def cover_image_url(self) -> str:
+        return BOOK_COVER_URL.format(bookid=self.bookid)
+
 class UserBookStatusUpdate(UserBookStatus):
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 
 class BookSearchResult(SQLModel):
     id: str
+    google_id: str
     title: str
-    authors: List[str] = ["Uknown Author"]
+    authors: List[str] = Field(default_factory=lambda: ["Uknown Author"])
     published_date: str = "Uknown Date"
 
 class BookDetails(SQLModel):
     title: str
+    bookid: str
     subtitle: str
-    authors: list[str]
+    authors: List[str]
     publisher: str
     published_date: datetime
     description: str
+
+    @property
+    def cover_image_url(self) -> str:
+        return BOOK_COVER_URL.format(bookid=self.bookid)
 
 class SaveBookRequest(BaseModel):
     user_id: int

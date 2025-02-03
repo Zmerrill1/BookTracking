@@ -13,9 +13,9 @@ if response.status_code == 200:
 
     if saved_books:
         for book in saved_books:
+            st.image(book.cover_image_url, width=150, caption=book["title"])
             st.subheader(book["title"])
             st.write(f"**Authors:** {book['authors']}")
-            st.write(f"**Authors:** {', '.join(book.get('authors', ['Unknown']))}")
             st.write(f"**Published Date:** {book.get('published_date', 'N/A')}")
 
     else:
