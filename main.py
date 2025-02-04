@@ -67,7 +67,7 @@ def create_book(book: BookCreate, session: Session = Depends(get_session)):
 @app.get("/books/", response_model=list[BookRead])
 def get_books(session: Session = Depends(get_session)):
     books = session.exec(select(Book)).all()
-    return books
+    return [BookRead(**book.dict()) for book in books]
 
 
 @app.post("/user-books/", response_model=UserBookStatus)
@@ -143,12 +143,11 @@ def search_google_books(
     books = search_books(term)
     if not books:
         raise HTTPException(status_code=404, detail=f"No books found for the search term '{term}'.")
+
     return [
         {
             # TODO: with google id we can also make the cover image url here
             "id": book["google_id"],
-            # TODO: can we remove google_id?
-            "google_id": book["google_id"],
             "title": book["title"],
             "authors": book["authors"],
             "published_date": book["published_date"],

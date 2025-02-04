@@ -22,11 +22,15 @@ def search_books(term: str):
         title = volume_info.get("title", "Unknown Title")
         authors = volume_info.get("authors", ["Uknown Author"])
         published_date = volume_info.get("publishedDate", "Uknown Date")
+
+        cover_image_url = volume_info.get("imageLinks", {}).get("thumbnail", "https://via.placeholder.com/150")
+
         books.append({
             "google_id": google_id,
             "title": title,
             "authors": authors,
             "published_date": published_date,
+            "cover_image_url": cover_image_url,
         })
 
     return books

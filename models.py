@@ -78,10 +78,10 @@ class UserBookStatusUpdate(UserBookStatus):
 
 class BookSearchResult(SQLModel):
     id: str
-    google_id: str
     title: str
     authors: List[str] = Field(default_factory=lambda: ["Uknown Author"])
     published_date: str = "Uknown Date"
+    cover_image_url: str
 
 class BookDetails(SQLModel):
     title: str
@@ -92,9 +92,9 @@ class BookDetails(SQLModel):
     published_date: datetime
     description: str
 
-    @property
-    def cover_image_url(self) -> str:
-        return BOOK_COVER_URL.format(bookid=self.bookid)
+    # @property
+    # def cover_image_url(self) -> str:
+    #     return BOOK_COVER_URL.format(bookid=self.bookid)
 
 class SaveBookRequest(BaseModel):
     user_id: int
