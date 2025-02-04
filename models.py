@@ -1,10 +1,18 @@
 from sqlmodel import SQLModel, Field, Relationship
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
+from passlib.context import CryptContext
+from decouple import config
+import jwt
+
 
 BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+SECRET_KEY = config("SECRET_KEY")
+ALGORITHM = config("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
 
 class StatusEnum(str, Enum):
     READING = 'reading'
@@ -34,6 +42,20 @@ class User(UserBase, table=True):
         back_populates="users", link_model=UserBookStatus
     )
 
+    def verify_password(self, password: str) -> bool:
+        return pwd_context.verify(password, self.password_hash)
+
+    def set_password(self, password: str):
+        self.password_hash = pwd_context.hash(password)
+
+    def get_token(self) -> str:
+        expire = datetime.utcnow() + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+        to_encode = {
+            "sub": self.username,
+            "exp": expire
+            }
+        return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
 
 class UserCreate(UserBase):
     password: str
@@ -42,6 +64,13 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     created_at: datetime
+
+class Token(SQLModel):
+    access_token: str
+    token_type: str
+
+class TokenData(SQLModel):
+    username: str | None = None
 
 
 class BookBase(SQLModel):
@@ -72,6 +101,9 @@ class BookRead(BookBase):
     @property
     def cover_image_url(self) -> str:
         return BOOK_COVER_URL.format(bookid=self.bookid)
+
+    class Config:
+        from_attributes = True
 
 class UserBookStatusUpdate(UserBookStatus):
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
