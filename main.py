@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends, HTTPException, Query
+from fastapi import FastAPI, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
-from passlib.context import CryptContext
 from db import get_session, create_db_and_tables
+from decouple import config
+import jwt
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from models import (
     Book,
     BookCreate,
@@ -15,15 +17,20 @@ from models import (
     BookSearchResult,
     BookDetails,
     SaveBookRequest,
-    StatusEnum
+    StatusEnum,
+    Token
 )
+
 from services.google_books import (
     search_books,
     get_book_details,
     clean_and_shorten_description,
 )
+#definitely duplicated (in models.py as well) and probably should get a config.py file set up
+SECRET_KEY = config("SECRET_KEY")
+ALGORITHM = config("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @asynccontextmanager
@@ -31,18 +38,37 @@ async def lifespan(app):
     create_db_and_tables()
     yield
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI(lifespan=lifespan)
 
 
+def get_current_user(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
+    credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except jwt.pyJWTError:
+        raise credentials_exception
+
+    user = session.exec(select(User).where(User.username == username)).first()
+    if user is None:
+        raise credentials_exception
+    return user
+
 @app.post("/users/", response_model=UserRead)
 def create_user(user: UserCreate, session: Session = Depends(get_session)):
-    hashed_password = pwd_context.hash(user.password)
     db_user = User(
         username=user.username,
         email=user.email,
-        password_hash=hashed_password,
     )
+    db_user.set_password(user.password)
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
@@ -53,6 +79,21 @@ def create_user(user: UserCreate, session: Session = Depends(get_session)):
 def get_users(session: Session = Depends(get_session)):
     users = session.exec(select(User)).all()
     return users
+
+@app.post("/token", response_model=Token)
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+    user = session.exec(select(User).where(User.username == form_data.username)).first()
+    if not user or not user.verify_password(form_data.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"}
+            )
+    return {"access_token": user.get_token(), "token_type": "bearer"}
+
+@app.get("/users/me", response_model=UserRead)
+def read_users_me(current_user: User = Depends(get_current_user)):
+    return current_user
 
 
 @app.post("/books/", response_model=BookRead)
@@ -67,7 +108,7 @@ def create_book(book: BookCreate, session: Session = Depends(get_session)):
 @app.get("/books/", response_model=list[BookRead])
 def get_books(session: Session = Depends(get_session)):
     books = session.exec(select(Book)).all()
-    return [BookRead(**book.dict()) for book in books]
+    return [BookRead.model_validate(book) for book in books]
 
 
 @app.post("/user-books/", response_model=UserBookStatus)
