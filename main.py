@@ -68,6 +68,7 @@ def create_user(user: UserCreate, session: Session = Depends(get_session)):
         username=user.username,
         email=user.email,
     )
+    db_user.set_password(user.password)
     session.add(db_user)
     session.commit()
     session.refresh(db_user)
