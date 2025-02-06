@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field, Relationship
+from sqlalchemy import Column, String
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -76,10 +77,10 @@ class TokenData(SQLModel):
 class BookBase(SQLModel):
     title: str
     bookid: str
-    description: Optional[str]
-    authors: Optional[str]
-    publisher: Optional[str]
-    published_date: Optional[datetime]
+    description: Optional[str] = None
+    authors: Optional[str] = Field(default=None, sa_column=Column(String))
+    publisher: Optional[str] = None
+    published_date: Optional[datetime] = None
 
 
 class Book(BookBase, table=True):
@@ -104,7 +105,6 @@ class BookRead(BookBase):
 
     class Config:
         from_attributes = True
-
 class UserBookStatusUpdate(UserBookStatus):
     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
 

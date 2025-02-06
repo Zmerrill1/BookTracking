@@ -45,4 +45,8 @@ dependencies = [
     "psycopg2>=2.9.10",
     "streamlit>=1.41.1",
     "pyjwt>=2.10.1",
+    "pydantic-settings>=2.7.1",
 ]
+
+[tool.uv]
+dev-dependencies = ["pytest", "pytest-asyncio"]

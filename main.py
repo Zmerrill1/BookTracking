@@ -97,7 +97,14 @@ def read_users_me(current_user: User = Depends(get_current_user)):
 
 @app.post("/books/", response_model=BookRead)
 def create_book(book: BookCreate, session: Session = Depends(get_session)):
-    db_book = Book(**book.model_dump())
+    db_book = Book(
+        title=book.title,
+        bookid=book.bookid,
+        description=book.description,
+        authors=book.authors,
+        publisher=book.publisher,
+        published_date=book.published_date
+    )
     session.add(db_book)
     session.commit()
     session.refresh(db_book)
@@ -107,7 +114,7 @@ def create_book(book: BookCreate, session: Session = Depends(get_session)):
 @app.get("/books/", response_model=list[BookRead])
 def get_books(session: Session = Depends(get_session)):
     books = session.exec(select(Book)).all()
-    return [BookRead.model_validate(book) for book in books]
+    return [BookRead.model_validate(book, from_attributes=True) for book in books]
 
 
 @app.post("/user-books/", response_model=UserBookStatus)
@@ -204,6 +211,7 @@ def get_google_book_details(book_id: str):
         raise HTTPException(status_code=404, detail="Book with ID: '{book_id}' not found.")
     return {
         "title": details.get("title", "N/A"),
+        "bookid": book_id,
         "subtitle": details.get("subtitle", "N/A"),
         "authors": details.get("authors", []),
         "publisher": details.get("publisher", "N/A"),
