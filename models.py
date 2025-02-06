@@ -105,8 +105,10 @@ class BookRead(BookBase):
 
     class Config:
         from_attributes = True
-class UserBookStatusUpdate(UserBookStatus):
-    updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
+
+class UserBookStatusUpdate(SQLModel):
+    status: StatusEnum = Field(nullable=False, index=True)
+
 
 class BookSearchResult(SQLModel):
     id: str

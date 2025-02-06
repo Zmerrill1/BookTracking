@@ -151,11 +151,11 @@ def update_user_book(
         select(UserBookStatus)
         .where(UserBookStatus.user_id == user_id)
         .where(UserBookStatus.book_id == book_id)
-        ).first()
-
+    ).first()
 
     if db_user_book is None:
         raise HTTPException(status_code=404, detail="UserBookStatus not found.")
+
     for key, value in updates.model_dump(exclude_unset=True).items():
         setattr(db_user_book, key, value)
 
