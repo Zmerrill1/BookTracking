@@ -49,4 +49,8 @@ dependencies = [
 ]
 
 [tool.uv]
-dev-dependencies = ["pytest", "pytest-asyncio"]
+dev-dependencies = [
+    "pytest",
+ "pytest-asyncio",
+ "pytest-cov>=6.0.0",
+]
