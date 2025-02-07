@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, String
 from pydantic import BaseModel
 from typing import List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from enum import Enum
 from passlib.context import CryptContext
 from config import settings
@@ -38,7 +38,7 @@ class UserBase(SQLModel):
 class User(UserBase, table=True):
     id: int = Field(default=None, primary_key=True)
     password_hash: str = Field(nullable=False)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     books: List["Book"] = Relationship(
         back_populates="users", link_model=UserBookStatus
     )
@@ -50,7 +50,7 @@ class User(UserBase, table=True):
         self.password_hash = pwd_context.hash(password)
 
     def get_token(self) -> str:
-        expire = datetime.utcnow() + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
+        expire = datetime.now(UTC) + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
         to_encode = {
             "sub": self.username,
             "exp": expire
@@ -123,7 +123,7 @@ class BookDetails(SQLModel):
     subtitle: str
     authors: List[str]
     publisher: str
-    published_date: datetime
+    published_date: str
     description: str
 
     # @property

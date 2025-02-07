@@ -1,71 +1,6 @@
 import pytest
-import bcrypt
-from sqlmodel import SQLModel, create_engine, Session
-from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
-from datetime import datetime
-
-
-from main import app, get_session
-from models import User, Book
-
-
-# --------------------
-# DB & CLIENT FIXTURES
-# --------------------
-
-#notes for zach (will delete these later): pytest fixture to set up and teardown the test database for isolation
-@pytest.fixture(name="session")
-def session_fixture():
-    engine = create_engine(
-    "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        yield session
-
-#pytest fixture to override 'get_session' from FastAPI in main.py with our test session. Clears that at the end.
-@pytest.fixture(name="client")
-def client_fixture(session: Session):
-    def get_session_override():
-        return session
-
-    app.dependency_overrides[get_session] = get_session_override
-    client = TestClient(app)
-    yield client
-    app.dependency_overrides.clear()
-
-@pytest.fixture(name="create_test_user")
-def create_test_user_fixture(session: Session):
-    password = "password123"
-    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-
-    user = User(username="validuser", email="valid@test.com", password_hash=hashed_password)
-    session.add(user)
-    session.commit()
-    session.refresh(user)
-    return user
-
-@pytest.fixture(name="test_book")
-def test_book_fixture(session: Session):
-    book = Book(title="Test Book",
-                bookid="abc123",
-                authors=", ".join(["Author1", "Author2"]),
-                publisher="Test Publisher",
-                published_date=datetime(2024, 12, 31))
-    session.add(book)
-    session.commit()
-    session.refresh(book)
-    return book
-
-@pytest.fixture(name="user_token")
-def user_token_fixture(client, create_test_user):
-    response = client.post(
-        "/token",
-        data={"username": "validuser", "password": "password123"},
-        headers={"Content-type": "application/x-www-form-urlencoded"}
-    )
-    return response.json()["access_token"]
+from bs4 import BeautifulSoup
+import textwrap
 
 
 # ------------------
@@ -83,7 +18,7 @@ def test_get_users(client, create_test_user):
     users = response.json()
 
     assert isinstance(users, list)
-    assert len(users) > 0
+    assert len(users) == 1
 
     expected_user = {
         "id": create_test_user.id,
@@ -109,7 +44,6 @@ def test_read_users_me_unauthenticated(client):
 # AUTHENTICATION TESTS
 # --------------------
 
-#testing authentication
 @pytest.mark.parametrize(
     "username, password, expected_status, token_expected",
     [
@@ -166,11 +100,13 @@ def test_get_user_books(client, create_test_user, test_book):
     client.post("/user-books/", json={"user_id": create_test_user.id, "book_id": test_book.id, "status": "to_read"})
     response = client.get(f"/user-books/?user_id={create_test_user.id}")
     assert response.status_code == 200
-    assert len(response.json()) > 0
+    assert len(response.json()) == 1
 
 #get the following error when running this one: TypeError: cannot pickle 'module' object
 def test_update_user_book_status(client, create_test_user, test_book):
-    client.post("/user-books/", json={"user_id": create_test_user.id, "book_id": test_book.id, "status": "to_read"})
+    post_response = client.post("/user-books/", json={"user_id": create_test_user.id, "book_id": test_book.id, "status": "to_read"})
+    assert post_response.status_code == 200
+
     response = client.patch(f"/user-books/{create_test_user.id}/{test_book.id}/",
                             json={"status": "completed"})
     assert response.status_code == 200
@@ -185,15 +121,59 @@ def test_delete_user_book(client, create_test_user, test_book):
 # GOOGLE BOOKS API TESTS
 # ----------------------
 
-def test_search_google_books(client):
+def test_search_google_books_success(client, mock_search_books):
     response = client.get("/google-books/search/?term=Python")
-    assert response.status_code in [200, 404]
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "id": "12345",
+            "title": "Python Book",
+            "authors": ["Test Author"],
+            "published_date": "2024-12-31",
+            "cover_image_url": "https://via.placeholder.com/150"
+        }
+    ]
 
-def test_google_book_details(client):
+def test_search_google_books_not_found(client, mock_search_books):
+    mock_search_books.return_value = []
+    response = client.get("/google-books/search/?term=ajdflkajsdlfj")
+    assert response.status_code == 404
+
+def clean_and_shorten_description(description: str, max_length: int = 300):
+    """Remove HTML tags from the description and truncate it."""
+    plain_text = BeautifulSoup(description, "html.parser").get_text()
+    return textwrap.shorten(plain_text, width=max_length, placeholder="...")
+
+def test_google_book_details_success(client, mock_get_book_details):
     response = client.get("/google-books/details/RQ6xDwAAQBAJ/")
-    print(f"DEBUG: {response.json()}")
-    assert response.status_code in [200, 404]
 
-def test_save_google_book(client, create_test_user):
-    response = client.post("/google-books/details/RQ6xDwAAQBAJ/save", json={"user_id": create_test_user.id})
-    assert response.status_code in [200, 400, 404]
+    expected_response = {
+        "title": "Test Book",
+        "bookid": "RQ6xDwAAQBAJ",
+        "subtitle": "test subtitle",
+        "authors": ["Test Author"],
+        "publisher": "Test Publisher",
+        "published_date": "2024-12-31",
+        "description": clean_and_shorten_description("Testing books"),
+    }
+
+    assert response.status_code == 200
+    assert response.json() == expected_response
+
+def test_google_book_details_not_found(client, mock_get_book_details_not_found):
+    response = client.get("/google-books/details/invalid-book-id/")
+    assert response.status_code == 404
+
+def test_save_google_book_success(client, create_test_user, mock_get_book_details):
+    response = client.post("/google-books/RQ6xDwAAQBAJ/save", json={"user_id": create_test_user.id})
+    assert response.status_code == 200
+    assert response.json()["status"] == "to_read"
+
+def test_save_google_book_invalid_data(client, create_test_user, mock_get_book_details):
+    response = client.post("/google-books/RQ6xDwAAQBAJ/save", json={})
+    assert response.status_code == 422
+
+def test_save_google_book_not_found(client, create_test_user, mock_get_book_details_not_found):
+    response = client.post("/google-books/InavlidID/save", json={"user_id": create_test_user.id})
+    assert response.status_code == 404
+    assert "Book with ID" in response.json()["detail"]

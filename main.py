@@ -3,6 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 from db import get_session, create_db_and_tables
 from config import settings
+from datetime import datetime
 import jwt
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from models import (
@@ -188,12 +189,12 @@ def search_google_books(
     term: str = Query(..., min_length=1, max_length=100, description="Search term for Google Books")
 ):
     books = search_books(term)
+    print(f"DEBUG: search_books('{term}') returned: {books}")
     if not books:
         raise HTTPException(status_code=404, detail=f"No books found for the search term '{term}'.")
 
     return [
         {
-            # TODO: with google id we can also make the cover image url here
             "id": book["google_id"],
             "title": book["title"],
             "authors": book["authors"],
@@ -209,13 +210,20 @@ def get_google_book_details(book_id: str):
     details = get_book_details(book_id)
     if not details:
         raise HTTPException(status_code=404, detail="Book with ID: '{book_id}' not found.")
+
+    published_date = details.get("publishedDate", "N/A")
+
+    if isinstance(published_date, str) and "T" in published_date:
+        published_date = published_date.split("T")[0]
+
+
     return {
         "title": details.get("title", "N/A"),
         "bookid": book_id,
         "subtitle": details.get("subtitle", "N/A"),
         "authors": details.get("authors", []),
         "publisher": details.get("publisher", "N/A"),
-        "published_date": details.get("publishedDate", "N/A"),
+        "published_date": published_date,
         "description": clean_and_shorten_description(details.get("description", "N/A")),
     }
 
@@ -233,9 +241,9 @@ def save_google_book(book_id: str, request: SaveBookRequest, session: Session = 
             bookid = book_id,
             title=details.get("title", "N/A"),
             description=clean_and_shorten_description(details.get("description", "")),
-            authors=details.get("authors", []),
+            authors=", ".join(details.get("authors", [])),
             publisher=details.get("publisher", "N/A"),
-            published_date=details.get("publishedDate", "N/A"),
+            published_date=datetime.strptime(details.get("publishedDate", "N/A"), "%Y-%m-%d").date()
         )
         session.add(db_book)
         session.commit()
