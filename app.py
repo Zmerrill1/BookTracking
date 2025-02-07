@@ -1,5 +1,5 @@
-import streamlit as st
 import requests
+import streamlit as st
 from decouple import config
 
 st.set_page_config(page_title="Book Tracker", layout="centered")
@@ -24,11 +24,13 @@ if "saved_book_id" not in st.session_state:
 if "save_clicked" not in st.session_state:
     st.session_state.save_clicked = False
 
+
 # Define the callback function BEFORE using it
 def save_book(book_id):
     st.session_state.saved_book_id = book_id
     st.session_state.save_clicked = True
     st.rerun()  # Force rerun so API call executes
+
 
 # Search form
 st.header("Search for Books")
@@ -38,16 +40,24 @@ if st.button("Search"):
     if search_query:
         with st.spinner("Searching for books..."):
             try:
-                response = requests.get(GOOGLE_BOOKS_SEARCH_URL, params={"term": search_query})
+                response = requests.get(
+                    GOOGLE_BOOKS_SEARCH_URL, params={"term": search_query}
+                )
                 if response.status_code == 200:
                     books = response.json()
                     st.success(f"Found {len(books)} books:")
 
                     for book in books:
-                        st.image(book["cover_image_url"], width=150, caption=book["title"])
+                        st.image(
+                            book["cover_image_url"], width=150, caption=book["title"]
+                        )
                         st.subheader(book["title"])
-                        st.write(f"**Authors:** {', '.join(book.get('authors', ['Unknown']))}")
-                        st.write(f"**Published Date:** {book.get('published_date', 'N/A')}")
+                        st.write(
+                            f"**Authors:** {', '.join(book.get('authors', ['Unknown']))}"
+                        )
+                        st.write(
+                            f"**Published Date:** {book.get('published_date', 'N/A')}"
+                        )
                         st.write(f"[More Info]({book.get('info_link', '#')})")
 
                         # Create a unique key for each book
@@ -58,7 +68,7 @@ if st.button("Search"):
                             f"Save '{book['title']}'",
                             key=button_key,
                             on_click=save_book,
-                            args=(book["id"],)  # Pass book ID to function
+                            args=(book["id"],),  # Pass book ID to function
                         )
 
                         st.write("---")
@@ -75,8 +85,7 @@ if st.session_state.save_clicked and st.session_state.saved_book_id:
     st.write(f"Debug: Sending save request for Book ID: {book_id}")
 
     save_response = requests.post(
-        f"{API_URL}/google-books/{book_id}/save",
-        json={"user_id": USER_ID}
+        f"{API_URL}/google-books/{book_id}/save", json={"user_id": USER_ID}
     )
 
     st.write(f"Debug: Response Status Code: {save_response.status_code}")

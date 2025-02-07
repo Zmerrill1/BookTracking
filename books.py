@@ -1,8 +1,8 @@
 import textwrap
 
-from bs4 import BeautifulSoup
 import httpx
 import typer
+from bs4 import BeautifulSoup
 
 app = typer.Typer()
 
