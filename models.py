@@ -1,13 +1,14 @@
-from sqlmodel import SQLModel, Field, Relationship
-from sqlalchemy import Column, String
-from pydantic import BaseModel
-from typing import List, Optional
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from enum import Enum
-from passlib.context import CryptContext
-from config import settings
-import jwt
+from typing import List, Optional
 
+import jwt
+from passlib.context import CryptContext
+from pydantic import BaseModel
+from sqlalchemy import Column, String
+from sqlmodel import Field, Relationship, SQLModel
+
+from config import settings
 
 BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -15,10 +16,12 @@ SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
+
 class StatusEnum(str, Enum):
-    READING = 'reading'
-    COMPLETED = 'completed'
-    TO_READ = 'to_read'
+    READING = "reading"
+    COMPLETED = "completed"
+    TO_READ = "to_read"
+
 
 class UserBookStatus(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", primary_key=True, index=True)
@@ -51,10 +54,7 @@ class User(UserBase, table=True):
 
     def get_token(self) -> str:
         expire = datetime.now(UTC) + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
-        to_encode = {
-            "sub": self.username,
-            "exp": expire
-            }
+        to_encode = {"sub": self.username, "exp": expire}
         return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -66,9 +66,11 @@ class UserRead(UserBase):
     id: int
     created_at: datetime
 
+
 class Token(SQLModel):
     access_token: str
     token_type: str
+
 
 class TokenData(SQLModel):
     username: str | None = None
@@ -87,9 +89,7 @@ class Book(BookBase, table=True):
     id: int = Field(default=None, primary_key=True)
     bookid: str = Field(index=True, unique=True)
 
-    users: List[User] = Relationship(
-        back_populates="books", link_model=UserBookStatus
-    )
+    users: List[User] = Relationship(back_populates="books", link_model=UserBookStatus)
 
 
 class BookCreate(BookBase):
@@ -106,6 +106,7 @@ class BookRead(BookBase):
     class Config:
         from_attributes = True
 
+
 class UserBookStatusUpdate(SQLModel):
     status: StatusEnum = Field(nullable=False, index=True)
 
@@ -116,6 +117,7 @@ class BookSearchResult(SQLModel):
     authors: List[str] = Field(default_factory=lambda: ["Uknown Author"])
     published_date: str = "Uknown Date"
     cover_image_url: str
+
 
 class BookDetails(SQLModel):
     title: str
@@ -129,6 +131,7 @@ class BookDetails(SQLModel):
     # @property
     # def cover_image_url(self) -> str:
     #     return BOOK_COVER_URL.format(bookid=self.bookid)
+
 
 class SaveBookRequest(BaseModel):
     user_id: int

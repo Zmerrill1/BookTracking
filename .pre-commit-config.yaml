@@ -4,7 +4,8 @@ repos:
     rev: v0.9.3  # Use the latest version of Ruff
     hooks:
       - id: ruff
-        args: [--fix]  # Automatically fixes issues if possible
+        args: [--fix, --extend-select=I]  # Automatically fixes issues if possible
+      - id: ruff-format
 
   # Pre-commit's built-in hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks

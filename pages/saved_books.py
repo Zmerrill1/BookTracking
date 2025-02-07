@@ -1,5 +1,5 @@
-import streamlit as st
 import requests
+import streamlit as st
 from decouple import config
 
 API_URL = config("API_URL")
