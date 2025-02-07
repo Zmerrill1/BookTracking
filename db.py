@@ -1,7 +1,7 @@
-from decouple import config
+from config import settings
 from sqlmodel import create_engine, Session, SQLModel
 
-DATABASE_URL = config("DATABASE_URL")
+DATABASE_URL = settings.DATABASE_URL
 engine = create_engine(DATABASE_URL)
 
 def get_session():
