@@ -60,6 +60,7 @@ def user_token_fixture(client, create_test_user):
         data={"username": "validuser", "password": "password123"},
         headers={"Content-type": "application/x-www-form-urlencoded"},
     )
+    assert response.status_code == 200
     return response.json()["access_token"]
 
 

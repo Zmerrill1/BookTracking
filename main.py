@@ -81,7 +81,10 @@ def create_user(user: UserCreate, session: Session = Depends(get_session)):
 
 
 @app.get("/users/", response_model=list[UserRead])
-def get_users(session: Session = Depends(get_session)):
+def get_users(
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
     users = session.exec(select(User)).all()
     return users
 
@@ -107,7 +110,11 @@ def read_users_me(current_user: User = Depends(get_current_user)):
 
 
 @app.post("/books/", response_model=BookRead)
-def create_book(book: BookCreate, session: Session = Depends(get_session)):
+def create_book(
+    book: BookCreate,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
     db_book = Book(
         title=book.title,
         bookid=book.bookid,
@@ -129,7 +136,11 @@ def get_books(session: Session = Depends(get_session)):
 
 
 @app.post("/user-books/", response_model=UserBookStatus)
-def add_user_book(user_book: UserBookStatus, session: Session = Depends(get_session)):
+def add_user_book(
+    user_book: UserBookStatus,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
     db_user_book = UserBookStatus(**user_book.model_dump())
     session.add(db_user_book)
     session.commit()
@@ -139,7 +150,10 @@ def add_user_book(user_book: UserBookStatus, session: Session = Depends(get_sess
 
 @app.get("/user-books/", response_model=list[UserBookStatus])
 def get_user_books(
-    user_id: int, status: str = None, session: Session = Depends(get_session)
+    user_id: int,
+    status: str = None,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
 ):
     query = select(UserBookStatus).where(UserBookStatus.user_id == user_id)
     if status:
@@ -153,6 +167,7 @@ def update_user_book(
     user_id: int,
     book_id: int,
     updates: UserBookStatusUpdate,
+    current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
     db_user_book = session.exec(
@@ -175,7 +190,10 @@ def update_user_book(
 
 @app.delete("/user-books/{user_id}/{book_id}/", status_code=204)
 def delete_user_book(
-    user_id: int, book_id: int, session: Session = Depends(get_session)
+    user_id: int,
+    book_id: int,
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
 ):
     db_user_book = session.exec(
         select(UserBookStatus)

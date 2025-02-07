@@ -21,8 +21,8 @@ def test_create_user(client):
     assert response.json()["username"] == "testuser"
 
 
-def test_get_users(client, create_test_user):
-    response = client.get("/users/")
+def test_get_users(client, create_test_user, user_token):
+    response = client.get("/users/", headers={"Authorization": f"Bearer {user_token}"})
     assert response.status_code == 200
     users = response.json()
 
@@ -89,7 +89,7 @@ def test_login(
 # ------------------
 
 
-def test_create_book(client):
+def test_create_book(client, user_token):
     response = client.post(
         "/books/",
         json={
@@ -99,6 +99,7 @@ def test_create_book(client):
             "publisher": "Pub Test",
             "published_date": "2024-12-31",
         },
+        headers={"Authorization": f"Bearer {user_token}"},
     )
     assert response.status_code == 200
     assert response.json()["title"] == "New Book"
@@ -115,7 +116,7 @@ def test_get_books(client, test_book):
 # ----------------------
 
 
-def test_add_user_book(client, create_test_user, test_book):
+def test_add_user_book(client, create_test_user, test_book, user_token):
     response = client.post(
         "/user-books/",
         json={
@@ -123,12 +124,13 @@ def test_add_user_book(client, create_test_user, test_book):
             "book_id": test_book.id,
             "status": "to_read",
         },
+        headers={"Authorization": f"Bearer {user_token}"},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "to_read"
 
 
-def test_get_user_books(client, create_test_user, test_book):
+def test_get_user_books(client, create_test_user, test_book, user_token):
     client.post(
         "/user-books/",
         json={
@@ -136,14 +138,18 @@ def test_get_user_books(client, create_test_user, test_book):
             "book_id": test_book.id,
             "status": "to_read",
         },
+        headers={"Authorization": f"Bearer {user_token}"},
     )
-    response = client.get(f"/user-books/?user_id={create_test_user.id}")
+    response = client.get(
+        f"/user-books/?user_id={create_test_user.id}",
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
     assert response.status_code == 200
     assert len(response.json()) == 1
 
 
 # get the following error when running this one: TypeError: cannot pickle 'module' object
-def test_update_user_book_status(client, create_test_user, test_book):
+def test_update_user_book_status(client, create_test_user, test_book, user_token):
     post_response = client.post(
         "/user-books/",
         json={
@@ -151,18 +157,20 @@ def test_update_user_book_status(client, create_test_user, test_book):
             "book_id": test_book.id,
             "status": "to_read",
         },
+        headers={"Authorization": f"Bearer {user_token}"},
     )
     assert post_response.status_code == 200
 
     response = client.patch(
         f"/user-books/{create_test_user.id}/{test_book.id}/",
         json={"status": "completed"},
+        headers={"Authorization": f"Bearer {user_token}"},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "completed"
 
 
-def test_delete_user_book(client, create_test_user, test_book):
+def test_delete_user_book(client, create_test_user, test_book, user_token):
     client.post(
         "/user-books/",
         json={
@@ -170,8 +178,12 @@ def test_delete_user_book(client, create_test_user, test_book):
             "book_id": test_book.id,
             "status": "to_read",
         },
+        headers={"Authorization": f"Bearer {user_token}"},
     )
-    response = client.delete(f"/user-books/{create_test_user.id}/{test_book.id}/")
+    response = client.delete(
+        f"/user-books/{create_test_user.id}/{test_book.id}/",
+        headers={"Authorization": f"Bearer {user_token}"},
+    )
     assert response.status_code == 204
 
 
