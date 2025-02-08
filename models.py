@@ -87,7 +87,7 @@ class BookBase(SQLModel):
 
 class Book(BookBase, table=True):
     id: int = Field(default=None, primary_key=True)
-    bookid: str = Field(index=True, unique=True)
+    bookid: str = Field(index=True, unique=True, nullable=False)
 
     users: List[User] = Relationship(back_populates="books", link_model=UserBookStatus)
 

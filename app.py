@@ -12,11 +12,13 @@ GOOGLE_BOOKS_SEARCH_URL = f"{API_URL}/google-books/search/"
 # Simulated user_id (Replace this with actual authentication later)
 USER_ID = 1
 
-st.sidebar.title("Navigation")
-page = st.sidebar.radio("Go to", ["Search Books", "Saved Books"])
+# st.sidebar.title("Navigation")
+# page = st.sidebar.radio("Go to", ["Search Books", "Saved Books", "AI Recommendations"])
 
-if page == "Saved Books":
-    st.switch_page("pages/saved_books.py")
+# if page == "Saved Books":
+#     st.switch_page("pages/saved_books.py")
+# elif page == "AI Recommendations":
+#     st.switch_page("pages/ai_recommendations.py")
 
 # Ensure session state variables exist
 if "saved_book_id" not in st.session_state:

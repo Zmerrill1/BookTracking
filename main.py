@@ -28,10 +28,12 @@ from services.google_books import (
     get_book_details,
     search_books,
 )
+from services.marvin_ai import recommend_similar_books
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+OPENAI_API_KEY = settings.OPENAI_API_KEY
 
 
 @asynccontextmanager
@@ -43,6 +45,9 @@ async def lifespan(app):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI(lifespan=lifespan)
+
+if not settings.OPENAI_API_KEY:
+    raise RuntimeError("OPENAI_API_KEY must be set in the .env file")
 
 
 def get_current_user(
@@ -303,3 +308,18 @@ def save_google_book(
         return user_book_status
     else:
         raise HTTPException(status_code=400, detail="Book is already saved by user.")
+
+
+@app.get("/books/{book_id}/recommendations", response_model=list[BookSearchResult])
+def get_book_recommendations(book_id: int, session: Session = Depends(get_session)):
+    book = session.get(Book, book_id)
+
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+
+    authors = book.authors.split(", ") if book.authors else []
+
+    recommendations = recommend_similar_books(
+        title=book.title, authors=authors, description=book.description or ""
+    )
+    return recommendations

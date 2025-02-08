@@ -21,6 +21,25 @@ if response.status_code == 200:
             st.write(f"**Authors:** {book['authors']}")
             st.write(f"**Published Date:** {book.get('published_date', 'N/A')}")
 
+            if st.button(
+                f"Get AI Recommendations for '{book['title']}'", key=f"rec_{book['id']}"
+            ):
+                rec_url = f"{API_URL}/books/{book['id']}/recommendations"
+                rec_response = requests.get(rec_url)
+
+                if rec_response.status_code == 200:
+                    recommendations = rec_response.json()
+
+                    st.write("### AI Recommended Books")
+                    for rec in recommendations:
+                        st.subheader(rec["title"])
+                        st.write(f"**Authors:** {', '.join(rec['authors'])}")
+                        st.image(
+                            rec["cover_image_url"], width=150, caption=rec["title"]
+                        )
+                else:
+                    st.error("Failed to get AI recommendations.")
+
     else:
         st.write("No books saved yet.")
 else:
