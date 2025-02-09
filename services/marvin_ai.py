@@ -3,7 +3,6 @@ from typing import List
 import marvin
 
 from config import settings
-from models import BookSearchResult
 
 marvin.settings.openai.api_key = settings.OPENAI_API_KEY
 
@@ -11,13 +10,14 @@ marvin.settings.openai.api_key = settings.OPENAI_API_KEY
 @marvin.fn
 def recommend_similar_books(
     title: str, authors: List[str], description: str
-) -> List[BookSearchResult]:
+) -> List[str]:
     """
-    Given a book's title, authors, and description, return a list of similar books.
-    The recommendations should consider similar books based on:
-     - Similar genre
-     - Related authors
-     - Common themes or writing styles
+    Given a book's title, authors, and description, return exactly **5 book titles** that are similar.
 
-     The output should return 3-5 similar books with titles, authors, and cover images.
+    Prioritize:
+     - Books by the same author or in the same genre.
+     - Well-known books with similar themes.
+     - Critically acclaimed books.
+
+     Return ** a Python list, not a single string, of exactly 5 book titles**, no more, no less.
     """

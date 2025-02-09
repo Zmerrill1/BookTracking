@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
+from typing import List
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Query, status
@@ -46,9 +47,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI(lifespan=lifespan)
 
-if not settings.OPENAI_API_KEY:
-    raise RuntimeError("OPENAI_API_KEY must be set in the .env file")
-
 
 def get_current_user(
     token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)
@@ -70,6 +68,34 @@ def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+
+def get_recommendations(
+    title: str, authors: List[str] = [], description: str = ""
+) -> List[BookSearchResult]:
+    recommended_titles = recommend_similar_books(
+        title=title, authors=authors, description=description
+    )
+
+    cleaned_titles = [title.split(" by ")[0] for title in recommended_titles]
+
+    recommendations = []
+    for title in cleaned_titles:
+        google_books_results = search_books(title)
+
+        if google_books_results:
+            first_result = google_books_results[0]
+            recommendations.append(
+                BookSearchResult(
+                    id=first_result["google_id"],
+                    title=first_result["title"],
+                    authors=first_result["authors"],
+                    published_date=first_result["published_date"],
+                    cover_image_url=first_result["cover_image_url"],
+                )
+            )
+
+    return recommendations
 
 
 @app.post("/users/", response_model=UserRead)
@@ -316,10 +342,16 @@ def get_book_recommendations(book_id: int, session: Session = Depends(get_sessio
 
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
-
     authors = book.authors.split(", ") if book.authors else []
-
-    recommendations = recommend_similar_books(
+    return get_recommendations(
         title=book.title, authors=authors, description=book.description or ""
     )
-    return recommendations
+
+
+@app.post("/recommend", response_model=List[BookSearchResult])
+def recommend_books(request: dict):
+    title = request.get("title")
+    if not title:
+        raise HTTPException(status_code=400, detail="Title is required")
+
+    return get_recommendations(title=title)
