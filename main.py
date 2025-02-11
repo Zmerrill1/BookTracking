@@ -28,10 +28,12 @@ from services.google_books import (
     get_book_details,
     search_books,
 )
+from services.marvin_ai import recommend_similar_books
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+OPENAI_API_KEY = settings.OPENAI_API_KEY
 
 
 @asynccontextmanager
@@ -65,6 +67,34 @@ def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+
+def get_recommendations(
+    title: str, authors: list[str] = [], description: str = ""
+) -> list[BookSearchResult]:
+    recommended_titles = recommend_similar_books(
+        title=title, authors=authors, description=description
+    )
+
+    cleaned_titles = [title.split(" by ")[0] for title in recommended_titles]
+
+    recommendations = []
+    for title in cleaned_titles:
+        google_books_results = search_books(title)
+
+        if google_books_results:
+            first_result = google_books_results[0]
+            recommendations.append(
+                BookSearchResult(
+                    id=first_result["google_id"],
+                    title=first_result["title"],
+                    authors=first_result["authors"],
+                    published_date=first_result["published_date"],
+                    cover_image_url=first_result["cover_image_url"],
+                )
+            )
+
+    return recommendations
 
 
 @app.post("/users/", response_model=UserRead)
@@ -303,3 +333,24 @@ def save_google_book(
         return user_book_status
     else:
         raise HTTPException(status_code=400, detail="Book is already saved by user.")
+
+
+@app.get("/books/{book_id}/recommendations", response_model=list[BookSearchResult])
+def get_book_recommendations(book_id: int, session: Session = Depends(get_session)):
+    book = session.get(Book, book_id)
+
+    if not book:
+        raise HTTPException(status_code=404, detail="Book not found")
+    authors = book.authors.split(", ") if book.authors else []
+    return get_recommendations(
+        title=book.title, authors=authors, description=book.description or ""
+    )
+
+
+@app.post("/recommend", response_model=list[BookSearchResult])
+def recommend_books(request: dict):
+    title = request.get("title")
+    if not title:
+        raise HTTPException(status_code=400, detail="Title is required")
+
+    return get_recommendations(title=title)

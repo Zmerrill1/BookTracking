@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 import jwt
 from passlib.context import CryptContext
@@ -42,7 +42,7 @@ class User(UserBase, table=True):
     id: int = Field(default=None, primary_key=True)
     password_hash: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    books: List["Book"] = Relationship(
+    books: list["Book"] = Relationship(
         back_populates="users", link_model=UserBookStatus
     )
 
@@ -87,9 +87,9 @@ class BookBase(SQLModel):
 
 class Book(BookBase, table=True):
     id: int = Field(default=None, primary_key=True)
-    bookid: str = Field(index=True, unique=True)
+    bookid: str = Field(index=True, unique=True, nullable=False)
 
-    users: List[User] = Relationship(back_populates="books", link_model=UserBookStatus)
+    users: list[User] = Relationship(back_populates="books", link_model=UserBookStatus)
 
 
 class BookCreate(BookBase):
@@ -114,7 +114,7 @@ class UserBookStatusUpdate(SQLModel):
 class BookSearchResult(SQLModel):
     id: str
     title: str
-    authors: List[str] = Field(default_factory=lambda: ["Uknown Author"])
+    authors: list[str] = Field(default_factory=lambda: ["Uknown Author"])
     published_date: str = "Uknown Date"
     cover_image_url: str
 
@@ -123,7 +123,7 @@ class BookDetails(SQLModel):
     title: str
     bookid: str
     subtitle: str
-    authors: List[str]
+    authors: list[str]
     publisher: str
     published_date: str
     description: str

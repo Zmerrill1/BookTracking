@@ -1,0 +1,26 @@
+/* Center everything */
+.main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Center the buttons */
+.stButton > button {
+    width: 200px; /* Adjust the button width */
+    margin: auto;
+    display: block;
+}
+
+/* Center images */
+.stImage > img {
+    display: block;
+    margin: auto;
+}
+
+/* Center expander content */
+.st-expander {
+    text-align: center;
+}
