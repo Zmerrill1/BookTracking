@@ -1,11 +1,11 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-import jwt
-from fastapi import Depends, FastAPI, HTTPException, Query, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlmodel import Session, select
 
+from auth import get_current_user
+from auth import router as auth_router
 from config import settings
 from db import create_db_and_tables, get_session
 from models import (
@@ -16,11 +16,9 @@ from models import (
     BookSearchResult,
     SaveBookRequest,
     StatusEnum,
-    Token,
     User,
     UserBookStatus,
     UserBookStatusUpdate,
-    UserCreate,
     UserRead,
 )
 from services.google_books import (
@@ -30,9 +28,6 @@ from services.google_books import (
 )
 from services.marvin_ai import recommend_similar_books
 
-SECRET_KEY = settings.SECRET_KEY
-ALGORITHM = settings.ALGORITHM
-ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 OPENAI_API_KEY = settings.OPENAI_API_KEY
 
 
@@ -42,31 +37,9 @@ async def lifespan(app):
     yield
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
 app = FastAPI(lifespan=lifespan)
 
-
-def get_current_user(
-    token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)
-):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
-            raise credentials_exception
-    except jwt.pyJWTError:
-        raise credentials_exception
-
-    user = session.exec(select(User).where(User.username == username)).first()
-    if user is None:
-        raise credentials_exception
-    return user
+app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 
 
 def get_recommendations(
@@ -97,19 +70,6 @@ def get_recommendations(
     return recommendations
 
 
-@app.post("/users/", response_model=UserRead)
-def create_user(user: UserCreate, session: Session = Depends(get_session)):
-    db_user = User(
-        username=user.username,
-        email=user.email,
-    )
-    db_user.set_password(user.password)
-    session.add(db_user)
-    session.commit()
-    session.refresh(db_user)
-    return db_user
-
-
 @app.get("/users/", response_model=list[UserRead])
 def get_users(
     current_user: User = Depends(get_current_user),
@@ -117,26 +77,6 @@ def get_users(
 ):
     users = session.exec(select(User)).all()
     return users
-
-
-@app.post("/token", response_model=Token)
-def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(),
-    session: Session = Depends(get_session),
-):
-    user = session.exec(select(User).where(User.username == form_data.username)).first()
-    if not user or not user.verify_password(form_data.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    return {"access_token": user.get_token(), "token_type": "bearer"}
-
-
-@app.get("/users/me", response_model=UserRead)
-def read_users_me(current_user: User = Depends(get_current_user)):
-    return current_user
 
 
 @app.post("/books/", response_model=BookRead)
@@ -244,7 +184,7 @@ def search_google_books(
     ),
 ):
     books = search_books(term)
-    print(f"DEBUG: search_books('{term}') returned: {books}")
+
     if not books:
         raise HTTPException(
             status_code=404, detail=f"No books found for the search term '{term}'."

@@ -1,12 +1,13 @@
 import requests
 import streamlit as st
-from decouple import config
+
+from config import settings
 
 st.set_page_config(page_title="Book Tracker", layout="centered")
 
 st.title("📚 ReadRadar")
 
-API_URL = config("API_URL")
+API_URL = settings.API_URL
 GOOGLE_BOOKS_SEARCH_URL = f"{API_URL}/google-books/search/"
 GOOGLE_BOOKS_DETAILS_URL = f"{API_URL}/google-books/details/"
 
@@ -15,6 +16,8 @@ USER_ID = 1
 
 
 # Ensure session state variables exist
+st.session_state.setdefault("access_token", None)
+st.session_state.setdefault("username", None)
 st.session_state.setdefault("saved_book_id", None)
 st.session_state.setdefault("save_clicked", False)
 st.session_state.setdefault("selected_book_id", None)
@@ -22,6 +25,59 @@ st.session_state.setdefault("selected_book_details", None)
 st.session_state.setdefault("search_results", [])
 st.session_state.setdefault("page", "Search Books")
 
+
+def login():
+    with st.form("Login"):
+        st.subheader("🔑 Login")
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Login")
+
+        if submitted:
+            response = requests.post(
+                f"{API_URL}/token", data={"username": username, "password": password}
+            )
+            if response.status_code == 200:
+                data = response.json()
+                st.session_state.access_token = data["access_token"]
+                st.session_state.username = username
+                st.success(f"Welcome back, {username}!")
+                st.rerun()
+            else:
+                st.error("Inavlid credentials. Please try again.")
+
+
+def signup():
+    with st.form("Signup"):
+        st.subheader("Sign Up")
+        username = st.text_input("Choose a Username")
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Sign Up")
+
+        if submitted:
+            response = requests.post(
+                f"{API_URL}/users/",
+                json={"username": username, "email": email, "password": password},
+            )
+            if response.status_code == 200:
+                st.success("Account created! Please log in.")
+            else:
+                st.error("Error creating account. Please try a different username")
+
+
+if st.session_state.access_token:
+    st.sidebar.success(f"Logged in as {st.session_state.username}")
+    if st.sidebar.button("Logout"):
+        st.session_state.access_token = None
+        st.session_state.username = None
+        st.experimental_rerun()
+else:
+    option = st.sidebar.radio("Authentication", ["Login", "Sign Up"])
+    if option == "Login":
+        login()
+    else:
+        signup()
 
 st.sidebar.title("Navigation")
 page = st.sidebar.radio(
@@ -67,9 +123,11 @@ def view_details(book_id):
 
 # Callback function to save a book
 def save_book(book_id):
+    if not st.session_state.access_token:
+        st.warning("You must be logged in to save books.")
+        return
     st.session_state.saved_book_id = book_id
     st.session_state.save_clicked = True
-    st.rerun()  # Force full script rerun for saving
 
 
 # Search form
@@ -126,12 +184,15 @@ if st.session_state.search_results:
 
         with col2:
             button_key = f"save_{book['id']}"
-            st.button(
-                "Save Book",
-                key=button_key,
-                on_click=save_book,
-                args=(book["id"],),
-            )
+            if st.session_state.access_token:
+                st.button(
+                    "Save Book",
+                    key=button_key,
+                    on_click=save_book,
+                    args=(book["id"],),
+                )
+            else:
+                st.button("Save Book (Login Required)", key=button_key, disabled=True)
 
         if (
             st.session_state.selected_book_id == book["id"]
@@ -165,9 +226,9 @@ if st.session_state.save_clicked and st.session_state.saved_book_id:
     )
 
     if save_response.ok:
-        st.success("Book saved successfully!")
+        st.success("✅ Book saved successfully!")
     else:
-        st.error(f"Failed to save book: {save_response.text}")
+        st.error(f"❌ Failed to save book: {save_response.text}")
 
     st.session_state.saved_book_id = None
     st.session_state.save_clicked = False
