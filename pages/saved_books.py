@@ -5,11 +5,11 @@ import requests
 import streamlit as st
 from decouple import config
 
+from db import get_user
+
 API_URL = config("API_URL")
 SAVED_BOOKS_URL = f"{API_URL}/books/"
 BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
-
-user_id = 1
 
 st.title("📚 Saved Books")
 
@@ -72,8 +72,8 @@ def update_book_status(user_id, book_id, status, rating, notes):
         "rating": rating if rating is not None else None,
         "notes": notes if notes else "",
     }
-
-    response = requests.patch(update_url, json=payload)
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+    response = requests.patch(update_url, json=payload, headers=headers)
     return response.status_code == 200
 
 
@@ -115,7 +115,8 @@ def display_book(book):
 
         # Submit button
         if st.button("Update", key=f"update_{book['id']}"):
-            success = update_book_status(user_id, book["id"], status, rating, notes)
+            user = get_user(st.session_state.username)
+            success = update_book_status(user.id, book["id"], status, rating, notes)
             if success:
                 st.success("Book updated successfully!")
             else:
