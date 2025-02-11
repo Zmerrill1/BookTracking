@@ -10,16 +10,13 @@ GOOGLE_BOOKS_DETAILS_URL = f"{API_URL}/google-books/details/"
 st.title("📖 AI-Powered Book Recommendations")
 
 # Ensure session state variables exist
-if "ai_recommendations" not in st.session_state:
-    st.session_state.ai_recommendations = []
-if "selected_book_id" not in st.session_state:
-    st.session_state.selected_book_id = None
-if "selected_book_details" not in st.session_state:
-    st.session_state.selected_book_details = None
-if "saved_book_id" not in st.session_state:
-    st.session_state.saved_book_id = None
-if "save_clicked" not in st.session_state:
-    st.session_state.save_clicked = False
+st.session_state.setdefault("ai_recommendations", [])
+st.session_state.setdefault("selected_book_id", None)
+st.session_state.setdefault("selected_book_details", None)
+st.session_state.setdefault("saved_book_id", None)
+st.session_state.setdefault("save_clicked", False)
+st.session_state.setdefault("page", "AI Recommendations")
+
 
 # Sidebar navigation
 st.sidebar.title("Navigation")
@@ -31,25 +28,27 @@ page = st.sidebar.radio(
     ),
 )
 
-if page == "Search Books":
-    st.switch_page("app.py")
-elif page == "Saved Books":
-    st.switch_page("pages/saved_books.py")
+if page != st.session_state.page:
+    st.session_state.page = page
+    match page:
+        case "Search Books":
+            st.switch_page("app.py")
+        case "Saved Books":
+            st.switch_page("pages/saved_books.py")
+        case "AI Recommendations":
+            st.switch_page("pages/ai_recommendations.py")
 
 USER_ID = 1  # Replace with actual authentication when implemented
 
 
 # Function to fetch AI recommendations (stored in session state)
 def fetch_recommendations(query):
-    try:
-        response = requests.post(RECOMMENDATIONS_URL, json={"title": query})
-        if response.status_code == 200:
-            st.session_state.ai_recommendations = response.json()
-        else:
-            st.session_state.ai_recommendations = []
-            st.error("Failed to fetch recommendations. Please try again.")
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+    response = requests.post(RECOMMENDATIONS_URL, json={"title": query})
+    if response.status_code == 200:
+        st.session_state.ai_recommendations = response.json()
+    else:
+        st.session_state.ai_recommendations = []
+        st.error("Failed to fetch recommendations. Please try again.")
 
 
 # Function to fetch book details using Google Books API (stored in session state)

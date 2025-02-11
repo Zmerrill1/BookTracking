@@ -2,19 +2,8 @@ import requests
 import streamlit as st
 from decouple import config
 
-
-def load_css():
-    """Loads the global CSS file into Streamlit."""
-    try:
-        with open("styles/global.css") as f:
-            css = f.read()
-            st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        st.warning("styles/global.css not found. UI not fully styled.")
-
-
 st.set_page_config(page_title="Book Tracker", layout="centered")
-load_css()
+
 st.title("📚 ReadRadar")
 
 API_URL = config("API_URL")
@@ -26,18 +15,13 @@ USER_ID = 1
 
 
 # Ensure session state variables exist
-if "saved_book_id" not in st.session_state:
-    st.session_state.saved_book_id = None
-if "save_clicked" not in st.session_state:
-    st.session_state.save_clicked = False
-if "selected_book_id" not in st.session_state:
-    st.session_state.selected_book_id = None
-if "selected_book_details" not in st.session_state:
-    st.session_state.selected_book_details = None
-if "search_results" not in st.session_state:
-    st.session_state.search_results = []
-if "page" not in st.session_state:
-    st.session_state.page = "Search Books"
+st.session_state.setdefault("saved_book_id", None)
+st.session_state.setdefault("save_clicked", False)
+st.session_state.setdefault("selected_book_id", None)
+st.session_state.setdefault("selected_book_details", None)
+st.session_state.setdefault("search_results", [])
+st.session_state.setdefault("page", "Search Books")
+
 
 st.sidebar.title("Navigation")
 page = st.sidebar.radio(
@@ -50,12 +34,13 @@ page = st.sidebar.radio(
 
 if page != st.session_state.page:
     st.session_state.page = page
-    if page == "Search Books":
-        st.switch_page("app.py")
-    elif page == "Saved Books":
-        st.switch_page("pages/saved_books.py")
-    elif page == "AI Recommendations":
-        st.switch_page("pages/ai_recommendations.py")
+    match page:
+        case "Search Books":
+            st.switch_page("app.py")
+        case "Saved Books":
+            st.switch_page("pages/saved_books.py")
+        case "AI Recommendations":
+            st.switch_page("pages/ai_recommendations.py")
 
 
 # Function to fetch and store book details in session state

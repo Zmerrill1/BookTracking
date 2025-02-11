@@ -10,18 +10,6 @@ SAVED_BOOKS_URL = f"{API_URL}/books/"
 BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
 
 
-def load_css():
-    """Loads the global CSS file into Streamlit."""
-    try:
-        with open("styles/global.css") as f:
-            css = f.read()
-            st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
-    except FileNotFoundError:
-        st.warning("styles/global.css not found. UI not fully styled.")
-
-
-load_css()
-
 st.title("📚 Saved Books")
 
 if "page" not in st.session_state:
@@ -38,17 +26,18 @@ page = st.sidebar.radio(
 
 if page != st.session_state.page:
     st.session_state.page = page
-    if page == "Search Books":
-        st.switch_page("app.py")
-    elif page == "Saved Books":
-        st.switch_page("pages/saved_books.py")
-    elif page == "AI Recommendations":
-        st.switch_page("pages/ai_recommendations.py")
+    match page:
+        case "Search Books":
+            st.switch_page("app.py")
+        case "Saved Books":
+            st.switch_page("pages/saved_books.py")
+        case "AI Recommendations":
+            st.switch_page("pages/ai_recommendations.py")
 
 
 def fetch_saved_books():
     response = requests.get(SAVED_BOOKS_URL)
-    return response.json() if response.status_code == 200 else None
+    return response.json() if response.status_code == 200 else []
 
 
 def format_published_date(date_str):
@@ -72,7 +61,7 @@ def parse_authors(authors):
 def fetch_recommendations(book_id):
     rec_url = f"{API_URL}/books/{book['id']}/recommendations"
     response = requests.get(rec_url)
-    return response.json() if response.status_code == 200 else "error"
+    return response.json() if response.status_code == 200 else ""
 
 
 def display_book(book):
@@ -84,7 +73,7 @@ def display_book(book):
 
     with st.container():
         st.subheader(book["title"])
-        if cover_image_url:
+        if cover_image_url is not None:
             st.image(cover_image_url, width=150, caption=book["title"])
 
         st.write(f"**👨‍💻 Authors:** {authors}")
@@ -136,12 +125,16 @@ if saved_books:
             or search_query in parse_authors(book["authors"]).lower()
         ]
 
-    if sort_option == "Title":
-        saved_books.sort(key=lambda x: x["title"].lower())
-    elif sort_option == "Author":
-        saved_books.sort(key=lambda x: parse_authors(x["authors"]).lower())
-    elif sort_option == "Published Date":
-        saved_books.sort(key=lambda x: x.get("published_date", ""), reverse=True)
+    sort_keys = {
+        "Title": lambda x: x["title"].lower(),
+        "Author": lambda x: parse_authors(x["authors"]).lower(),
+        "Published Date": lambda x: x.get("published_date", ""),
+    }
+
+    if sort_option in sort_keys:
+        saved_books.sort(
+            key=sort_keys[sort_option], reverse=(sort_option == "Published Date")
+        )
 
     for book in saved_books:
         display_book(book)

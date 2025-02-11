@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import List
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Query, status
@@ -71,8 +70,8 @@ def get_current_user(
 
 
 def get_recommendations(
-    title: str, authors: List[str] = [], description: str = ""
-) -> List[BookSearchResult]:
+    title: str, authors: list[str] = [], description: str = ""
+) -> list[BookSearchResult]:
     recommended_titles = recommend_similar_books(
         title=title, authors=authors, description=description
     )
@@ -348,7 +347,7 @@ def get_book_recommendations(book_id: int, session: Session = Depends(get_sessio
     )
 
 
-@app.post("/recommend", response_model=List[BookSearchResult])
+@app.post("/recommend", response_model=list[BookSearchResult])
 def recommend_books(request: dict):
     title = request.get("title")
     if not title:
