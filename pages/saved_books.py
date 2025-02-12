@@ -5,10 +5,11 @@ import requests
 import streamlit as st
 from decouple import config
 
+from db import get_user
+
 API_URL = config("API_URL")
 SAVED_BOOKS_URL = f"{API_URL}/books/"
 BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
-
 
 st.title("📚 Saved Books")
 
@@ -64,6 +65,18 @@ def fetch_recommendations(book_id):
     return response.json() if response.status_code == 200 else ""
 
 
+def update_book_status(user_id, book_id, status, rating, notes):
+    update_url = f"{API_URL}/user-books/{user_id}/{book_id}/"
+    payload = {
+        "status": status,
+        "rating": rating if rating is not None else None,
+        "notes": notes if notes else "",
+    }
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+    response = requests.patch(update_url, json=payload, headers=headers)
+    return response.status_code == 200
+
+
 def display_book(book):
     cover_image_url = (
         BOOK_COVER_URL.format(bookid=book["bookid"]) if "bookid" in book else None
@@ -78,6 +91,36 @@ def display_book(book):
 
         st.write(f"**👨‍💻 Authors:** {authors}")
         st.write(f"**📅 Published Date:** {published_date}")
+
+        current_status = book.get("status", "to_read")
+        current_rating = book.get("rating", 0)
+        current_notes = book.get("notes", "")
+
+        status = st.selectbox(
+            "📖 Reading Status",
+            options=["reading", "completed", "to_read"],
+            index=["reading", "completed", "to_read"].index(current_status),
+            key=f"status_{book['id']}",
+        )
+
+        rating = st.slider(
+            "⭐ Rating (1-5)",
+            min_value=1,
+            max_value=5,
+            value=current_rating,
+            key=f"rating_{book['id']}",
+        )
+
+        notes = st.text_area("📝 Notes", value=current_notes, key=f"notes_{book['id']}")
+
+        # Submit button
+        if st.button("Update", key=f"update_{book['id']}"):
+            user = get_user(st.session_state.username)
+            success = update_book_status(user.id, book["id"], status, rating, notes)
+            if success:
+                st.success("Book updated successfully!")
+            else:
+                st.error("Failed to update book.")
 
         rec_key = f"rec_{book['id']}"
         if rec_key not in st.session_state:

@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 
 from config import settings
+from db import get_user
 
 API_URL = settings.API_URL
 RECOMMENDATIONS_URL = f"{API_URL}/recommend"
@@ -37,8 +38,6 @@ if page != st.session_state.page:
             st.switch_page("pages/saved_books.py")
         case "AI Recommendations":
             st.switch_page("pages/ai_recommendations.py")
-
-USER_ID = 1  # Replace with actual authentication when implemented
 
 
 # Function to fetch AI recommendations (stored in session state)
@@ -79,9 +78,13 @@ def save_book(book_id):
     st.session_state.save_clicked = True
 
 
-query_book_title = st.text_input("Enter a book title for recommendation:")
+query_book_title = None
 
-if query_book_title and st.button("Get Recommendations"):
+with st.form(key="search_form"):
+    query_book_title = st.text_input("Enter a book title for recommendation:")
+    submit_button = st.form_submit_button("Get Recommendations")
+
+if query_book_title and submit_button:
     fetch_recommendations(query_book_title)
 
 # Display AI Recommendations
@@ -143,11 +146,13 @@ if st.session_state.ai_recommendations:
 # Show success message for saved book
 if st.session_state.save_clicked and st.session_state.saved_book_id:
     book_id = st.session_state.saved_book_id
-    save_url = f"{API_URL}/google-books/{book_id}/save"  # Corrected save URL
 
-    save_response = requests.post(save_url, json={"user_id": USER_ID})
+    user = get_user(st.session_state.username)
+    save_response = requests.post(
+        f"{API_URL}/google-books/{book_id}/save", json={"user_id": user.id}
+    )
 
-    if save_response.status_code == 201:
+    if save_response.ok:
         st.success("✅ Book saved successfully!")
     else:
         st.error(f"❌ Failed to save book: {save_response.text}")

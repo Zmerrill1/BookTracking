@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 
 def test_create_user(client):
     response = client.post(
-        "/users/",
+        "/auth/users/",
         json={
             "username": "testuser",
             "email": "test@test.com",
@@ -22,7 +22,9 @@ def test_create_user(client):
 
 
 def test_get_users(client, create_test_user, user_token):
-    response = client.get("/users/", headers={"Authorization": f"Bearer {user_token}"})
+    response = client.get(
+        "/auth/users/", headers={"Authorization": f"Bearer {user_token}"}
+    )
     assert response.status_code == 200
     users = response.json()
 

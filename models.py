@@ -109,6 +109,8 @@ class BookRead(BookBase):
 
 class UserBookStatusUpdate(SQLModel):
     status: StatusEnum = Field(nullable=False, index=True)
+    rating: Optional[int] = Field(default=None)
+    notes: Optional[str] = Field(default=None)
 
 
 class BookSearchResult(SQLModel):
