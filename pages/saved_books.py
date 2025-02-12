@@ -8,7 +8,7 @@ from decouple import config
 from db import get_user
 
 API_URL = config("API_URL")
-SAVED_BOOKS_URL = f"{API_URL}/books/"
+SAVED_BOOKS_URL = f"{API_URL}/user-books/"
 BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
 
 st.title("📚 Saved Books")
@@ -36,8 +36,11 @@ if page != st.session_state.page:
             st.switch_page("pages/ai_recommendations.py")
 
 
-def fetch_saved_books():
-    response = requests.get(SAVED_BOOKS_URL)
+def fetch_saved_books(user_id):
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+    response = requests.get(
+        SAVED_BOOKS_URL, params={"user_id": user_id}, headers=headers
+    )
     return response.json() if response.status_code == 200 else []
 
 
@@ -78,85 +81,110 @@ def update_book_status(user_id, book_id, status, rating, notes):
 
 
 def display_book(book):
+    if "update_success" in st.session_state:
+        st.success(st.session_state["update_success"])
+        del st.session_state["update_success"]
+
     cover_image_url = (
         BOOK_COVER_URL.format(bookid=book["bookid"]) if "bookid" in book else None
     )
     published_date = format_published_date(book.get("published_date"))
     authors = parse_authors(book["authors"])
 
+    book_id = book["id"]
+
+    # 🔹 Ensure session state is initialized before rendering widgets
+    if f"status_{book_id}" not in st.session_state:
+        st.session_state[f"status_{book_id}"] = book.get("status", "to_read")
+    if f"rating_{book_id}" not in st.session_state:
+        st.session_state[f"rating_{book_id}"] = book.get("rating", 0)
+    if f"notes_{book_id}" not in st.session_state:
+        st.session_state[f"notes_{book_id}"] = book.get("notes", "")
+
     with st.container():
-        st.subheader(book["title"])
-        if cover_image_url is not None:
-            st.image(cover_image_url, width=150, caption=book["title"])
+        col1, col2 = st.columns([1, 3])
 
-        st.write(f"**👨‍💻 Authors:** {authors}")
-        st.write(f"**📅 Published Date:** {published_date}")
+        with col1:
+            if cover_image_url:
+                st.image(cover_image_url, width=120)
 
-        current_status = book.get("status", "to_read")
-        current_rating = book.get("rating", 0)
-        current_notes = book.get("notes", "")
+        with col2:
+            st.subheader(book["title"])
+            st.write(f"**Authors:** {authors}")
+            st.write(f"**Published Date:** {published_date}")
 
-        status = st.selectbox(
-            "📖 Reading Status",
-            options=["reading", "completed", "to_read"],
-            index=["reading", "completed", "to_read"].index(current_status),
-            key=f"status_{book['id']}",
-        )
+            col3, col4 = st.columns([1, 1])
+            with col3:
+                st.selectbox(
+                    "📖 Status",
+                    ["reading", "completed", "to_read"],
+                    key=f"status_{book_id}",
+                )
+            with col4:
+                st.slider(
+                    "⭐ Rating",
+                    min_value=1,
+                    max_value=5,
+                    value=book.get("rating", 0),
+                    key=f"rating_{book_id}",
+                )
 
-        rating = st.slider(
-            "⭐ Rating (1-5)",
-            min_value=1,
-            max_value=5,
-            value=current_rating,
-            key=f"rating_{book['id']}",
-        )
+            st.text_area(
+                "📝 Notes", value=book.get("notes", ""), key=f"notes_{book_id}"
+            )
 
-        notes = st.text_area("📝 Notes", value=current_notes, key=f"notes_{book['id']}")
-
-        # Submit button
-        if st.button("Update", key=f"update_{book['id']}"):
-            user = get_user(st.session_state.username)
-            success = update_book_status(user.id, book["id"], status, rating, notes)
-            if success:
-                st.success("Book updated successfully!")
-            else:
-                st.error("Failed to update book.")
-
-        rec_key = f"rec_{book['id']}"
-        if rec_key not in st.session_state:
-            st.session_state[rec_key] = None
-
-        with st.expander(f"🔍 AI Recommendations similar to '{book['title']}'"):
-            if st.button("Generate AI Recommendations", key=f"btn_{book['id']}"):
-                recommendations = fetch_recommendations(book["id"])
-                st.session_state[rec_key] = recommendations
-
-            if rec_key in st.session_state and st.session_state[rec_key] is not None:
-                if st.session_state[rec_key] == "error":
-                    st.error("Failed to get AI recommendations.")
-                elif st.session_state[rec_key]:
-                    for rec in st.session_state[rec_key]:
-                        with st.container():
-                            st.markdown(f"### 📕 {rec['title']}")
-                            st.write(f"**👨‍💻 Authors:** {', '.join(rec['authors'])}")
-                            if rec.get("cover_image_url"):
-                                st.image(
-                                    rec["cover_image_url"],
-                                    width=150,
-                                    caption=rec["title"],
-                                )
+            if st.button("Update", key=f"update_{book_id}"):
+                user = get_user(st.session_state.username)
+                update_url = f"{API_URL}/user-books/{user.id}/{book_id}/"
+                payload = {
+                    "status": st.session_state[f"status_{book_id}"],
+                    "rating": st.session_state[f"rating_{book_id}"],
+                    "notes": st.session_state[f"notes_{book_id}"],
+                }
+                headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+                response = requests.patch(update_url, json=payload, headers=headers)
+                if response.ok:
+                    st.success(f"✅ Book '{book['title']}' updated successfully!")
                 else:
-                    st.info("No AI recommendations available.")
+                    st.error("❌ Failed to update book.")
 
-        st.divider()
+        with st.expander(f"🔍 AI Recommendations for '{book['title']}'"):
+            if st.button("Generate AI Recommendations", key=f"btn_{book['id']}"):
+                rec_url = f"{API_URL}/books/{book['id']}/recommendations"
+                response = requests.get(rec_url)
+                st.session_state[f"rec_{book['id']}"] = (
+                    response.json() if response.ok else "error"
+                )
+
+            recommendations = st.session_state.get(f"rec_{book['id']}", [])
+            if recommendations == "error":
+                st.error("Failed to get AI recommendations.")
+            elif recommendations:
+                for rec in recommendations:
+                    with st.container():
+                        st.markdown(f"### 📕 {rec['title']}")
+                        st.write(f"**Authors:** {', '.join(rec['authors'])}")
+                        if rec.get("cover_image_url"):
+                            st.image(rec["cover_image_url"], width=120)
+            else:
+                st.info("No recommendations available.")
+
+        st.write("---")
 
 
-saved_books = fetch_saved_books()
+if "username" not in st.session_state:
+    st.error("You need to be logged in to view saved books")
+    st.stop()
+
+user = get_user(st.session_state.username)
+
+
+saved_books = fetch_saved_books(user.id)
 
 if saved_books:
     with st.expander("⚙️ Sort & Filter Options"):
         sort_option = st.selectbox(
-            "Sort books by:", ["Title", "Author", "Published Date"]
+            "Sort books by:", ["Date Added", "Title", "Author", "Published Date"]
         )
         search_query = st.text_input("🔍 Search by title or author").strip().lower()
 
@@ -169,6 +197,7 @@ if saved_books:
         ]
 
     sort_keys = {
+        "Date Added": lambda x: x["created_at"],
         "Title": lambda x: x["title"].lower(),
         "Author": lambda x: parse_authors(x["authors"]).lower(),
         "Published Date": lambda x: x.get("published_date", ""),
@@ -176,7 +205,8 @@ if saved_books:
 
     if sort_option in sort_keys:
         saved_books.sort(
-            key=sort_keys[sort_option], reverse=(sort_option == "Published Date")
+            key=sort_keys[sort_option],
+            reverse=(sort_option == "Date Added", "Published Date"),
         )
 
     for book in saved_books:

@@ -124,8 +124,17 @@ def save_book(book_id):
     if not st.session_state.access_token:
         st.warning("You must be logged in to save books.")
         return
-    st.session_state.saved_book_id = book_id
-    st.session_state.save_clicked = True
+
+    # headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+    user = get_user(st.session_state.username)
+    save_response = requests.post(
+        f"{API_URL}/google-books/{book_id}/save", json={"user_id": user.id}
+    )
+
+    if save_response:
+        st.session_state[f"saved_{book_id}"] = True
+    else:
+        st.session_state[f"saved_{book_id}"] = False
 
 
 # Search form
@@ -165,32 +174,40 @@ if st.session_state.search_results:
     st.success(f"Found {len(st.session_state.search_results)} books:")
 
     for book in st.session_state.search_results:
-        st.image(book["cover_image_url"], width=150, caption=book["title"])
-        st.subheader(book["title"])
-        st.write(f"**Authors:** {', '.join(book.get('authors', ['Unknown']))}")
-        st.write(f"**Published Date:** {book.get('published_date', 'N/A')}")
+        with st.container():
+            col1, col2 = st.columns([1, 3])
 
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            details_button_key = f"details_{book['id']}"
-            st.button(
-                "View Details",
-                key=details_button_key,
-                on_click=view_details,
-                args=(book["id"],),
-            )
+            with col1:
+                st.image(book["cover_image_url"], width=120, caption=book["title"])
 
-        with col2:
-            button_key = f"save_{book['id']}"
-            if st.session_state.access_token:
+            with col2:
+                st.subheader(book["title"])
+                st.write(f"**Authors:** {', '.join(book.get('authors', ['Unknown']))}")
+                st.write(f"**Published Date:** {book.get('published_date', 'N/A')}")
+
+            col3, col4 = st.columns([1, 1])
+            with col3:
+                details_button_key = f"details_{book['id']}"
                 st.button(
-                    "Save Book",
-                    key=button_key,
-                    on_click=save_book,
+                    "View Details",
+                    key=details_button_key,
+                    on_click=view_details,
                     args=(book["id"],),
                 )
-            else:
-                st.button("Save Book (Login Required)", key=button_key, disabled=True)
+
+            with col4:
+                button_key = f"save_{book['id']}"
+                if st.session_state.access_token:
+                    st.button(
+                        "Save Book",
+                        key=button_key,
+                        on_click=save_book,
+                        args=(book["id"],),
+                    )
+                else:
+                    st.button(
+                        "Save Book (Login Required)", key=button_key, disabled=True
+                    )
 
         if (
             st.session_state.selected_book_id == book["id"]
@@ -217,7 +234,6 @@ if st.session_state.search_results:
 
 if st.session_state.save_clicked and st.session_state.saved_book_id:
     book_id = st.session_state.saved_book_id
-    st.write(f"Debug: Sending save request for Book ID: {book_id}")
 
     headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
     user = get_user(st.session_state.username)
