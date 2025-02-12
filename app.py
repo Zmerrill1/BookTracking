@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 
 from config import settings
+from db import get_user
 
 st.set_page_config(page_title="Book Tracker", layout="centered")
 
@@ -10,10 +11,6 @@ st.title("📚 ReadRadar")
 API_URL = settings.API_URL
 GOOGLE_BOOKS_SEARCH_URL = f"{API_URL}/google-books/search/"
 GOOGLE_BOOKS_DETAILS_URL = f"{API_URL}/google-books/details/"
-
-# Simulated user_id (Replace this with actual authentication later)
-USER_ID = 1
-
 
 # Ensure session state variables exist
 st.session_state.setdefault("access_token", None)
@@ -35,7 +32,8 @@ def login():
 
         if submitted:
             response = requests.post(
-                f"{API_URL}/token", data={"username": username, "password": password}
+                f"{API_URL}/auth/token",
+                data={"username": username, "password": password},
             )
             if response.status_code == 200:
                 data = response.json()
@@ -221,8 +219,12 @@ if st.session_state.save_clicked and st.session_state.saved_book_id:
     book_id = st.session_state.saved_book_id
     st.write(f"Debug: Sending save request for Book ID: {book_id}")
 
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+    user = get_user(st.session_state.username)
     save_response = requests.post(
-        f"{API_URL}/google-books/{book_id}/save", json={"user_id": USER_ID}
+        f"{API_URL}/google-books/{book_id}/save",
+        json={"user_id": user.id},
+        # headers=headers
     )
 
     if save_response.ok:

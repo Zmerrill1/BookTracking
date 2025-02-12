@@ -46,6 +46,7 @@ dependencies = [
     "streamlit>=1.41.1",
     "pyjwt>=2.10.1",
     "pydantic-settings>=2.7.1",
+    "marvin>=2.3.8",
 ]
 
 [tool.uv]

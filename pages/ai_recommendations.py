@@ -2,6 +2,7 @@ import requests
 import streamlit as st
 
 from config import settings
+from db import get_user
 
 API_URL = settings.API_URL
 RECOMMENDATIONS_URL = f"{API_URL}/recommend"
@@ -37,8 +38,6 @@ if page != st.session_state.page:
             st.switch_page("pages/saved_books.py")
         case "AI Recommendations":
             st.switch_page("pages/ai_recommendations.py")
-
-USER_ID = 1  # Replace with actual authentication when implemented
 
 
 # Function to fetch AI recommendations (stored in session state)
@@ -148,8 +147,9 @@ if st.session_state.ai_recommendations:
 if st.session_state.save_clicked and st.session_state.saved_book_id:
     book_id = st.session_state.saved_book_id
 
+    user = get_user(st.session_state.username)
     save_response = requests.post(
-        f"{API_URL}/google-books/{book_id}/save", json={"user_id": USER_ID}
+        f"{API_URL}/google-books/{book_id}/save", json={"user_id": user.id}
     )
 
     if save_response.ok:
