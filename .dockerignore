@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.sqlite3
+.env
+migrations/**/__pycache__/
+tests/__pycache__/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
