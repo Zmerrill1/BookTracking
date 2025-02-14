@@ -1,6 +1,6 @@
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import TYPE_CHECKING, List, Optional
+from typing import Optional
 
 import jwt
 from passlib.context import CryptContext
@@ -16,9 +16,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
-
-if TYPE_CHECKING:
-    from models import Book, User  # Ensure correct TYPE_CHECKING import
 
 
 class StatusEnum(str, Enum):
@@ -64,10 +61,6 @@ class User(UserBase, table=True):
     password_hash: str = Field(nullable=False)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
-    books: List["Book"] = Relationship(
-        back_populates="users", link_model=UserBookStatus
-    )
-
     def verify_password(self, password: str) -> bool:
         return pwd_context.verify(password, self.password_hash)
 
@@ -87,9 +80,9 @@ class Book(BookBase, table=True):
     id: int = Field(default=None, primary_key=True)
     bookid: str = Field(index=True, unique=True, nullable=False)
 
-    users: List["User"] = Relationship(
-        back_populates="books", link_model=UserBookStatus
-    )
+
+User.books = Relationship(back_populates="users", link_model=UserBookStatus)
+Book.users = Relationship(back_populates="books", link_model=UserBookStatus)
 
 
 class UserCreate(UserBase):
@@ -162,3 +155,6 @@ class UserBookResponse(SQLModel):
     publisher: Optional[str]
     published_date: Optional[datetime]
     created_at: datetime
+    status: str
+    rating: Optional[int] = None
+    notes: Optional[str] = None

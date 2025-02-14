@@ -164,6 +164,9 @@ def get_user_books(
             publisher=book.publisher,
             published_date=book.published_date,
             created_at=user_book_status.created_at,
+            status=user_book_status.status,
+            rating=user_book_status.rating,
+            notes=user_book_status.notes,
         )
         for user_book_status, book in user_books
     ]

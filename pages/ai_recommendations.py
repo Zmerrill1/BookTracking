@@ -11,6 +11,8 @@ GOOGLE_BOOKS_DETAILS_URL = f"{API_URL}/google-books/details/"
 st.title("📖 AI-Powered Book Recommendations")
 
 # Ensure session state variables exist
+st.session_state.setdefault("access_token", None)
+st.session_state.setdefault("username", None)
 st.session_state.setdefault("ai_recommendations", [])
 st.session_state.setdefault("selected_book_id", None)
 st.session_state.setdefault("selected_book_details", None)
@@ -19,18 +21,37 @@ st.session_state.setdefault("save_clicked", False)
 st.session_state.setdefault("page", "AI Recommendations")
 
 
+if st.session_state.access_token:
+    st.sidebar.success(f"Logged in as {st.session_state.username}")
+    if st.sidebar.button("Logout"):
+        st.session_state.access_token = None
+        st.session_state.username = None
+        st.rerun()
+
+
 # Sidebar navigation
 st.sidebar.title("Navigation")
+if st.session_state.access_token:
+    pages = ["Search Books", "Saved Books", "AI Recommendations"]
+else:
+    pages = ["Login", "Search Books", "AI Recommendations"]
+
+if "page" not in st.session_state or st.session_state.page not in pages:
+    st.session_state.page = "Search Books"
+
 page = st.sidebar.radio(
     "Go to",
-    ["Search Books", "Saved Books", "AI Recommendations"],
-    index=["Search Books", "Saved Books", "AI Recommendations"].index(
-        "AI Recommendations"
-    ),
+    pages,
+    index=pages.index(st.session_state.page),
 )
 
 if page != st.session_state.page:
     st.session_state.page = page
+
+    if page == "Search Books":
+        st.session_state.search_results = []
+        st.session_state.last_search_query = ""
+
     match page:
         case "Search Books":
             st.switch_page("app.py")
@@ -38,6 +59,8 @@ if page != st.session_state.page:
             st.switch_page("pages/saved_books.py")
         case "AI Recommendations":
             st.switch_page("pages/ai_recommendations.py")
+        case "Login":
+            st.switch_page("pages/login.py")
 
 
 # Function to fetch AI recommendations (stored in session state)
@@ -74,8 +97,22 @@ def view_details(book_id):
 
 # Callback function to handle "Save" book
 def save_book(book_id):
-    st.session_state.saved_book_id = book_id
-    st.session_state.save_clicked = True
+    if not st.session_state.access_token:
+        st.warning("You must be logged in to save books.")
+        return
+
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+    user = get_user(st.session_state.username)
+    save_response = requests.post(
+        f"{API_URL}/google-books/{book_id}/save",
+        json={"user_id": user.id},
+        headers=headers,
+    )
+    if save_response.ok:
+        st.session_state[f"saved_{book_id}"] = True
+    else:
+        st.session_state[f"saved_{book_id}"] = False
+        st.session_state[f"save_error_{book_id}"] = save_response.text
 
 
 query_book_title = None
@@ -105,20 +142,38 @@ if st.session_state.ai_recommendations:
 
                 col3, col4 = st.columns([1, 1])
                 with col3:
+                    details_button_key = f"view_details_{book['id']}"
                     st.button(
                         "View Details",
-                        key=f"details_{book['id']}",
+                        key=details_button_key,
                         on_click=view_details,
                         args=(book["id"],),
                     )
 
                 with col4:
-                    st.button(
-                        "Save",
-                        key=f"save_{book['id']}",
-                        on_click=save_book,
-                        args=(book["id"],),
+                    save_button_key = f"save_{book['id']}"
+
+                    if st.session_state.access_token:
+                        st.button(
+                            "Save",
+                            key=save_button_key,
+                            on_click=save_book,
+                            args=(book["id"],),
+                        )
+                    else:
+                        st.button(
+                            "Save Book (Login Required)",
+                            key=save_button_key,
+                            disabled=True,
+                        )
+
+                if st.session_state.get(f"saved_{book['id']}", None) is True:
+                    st.success("✅ Book saved successfully!")
+                elif st.session_state.get(f"saved_{book['id']}", None) is False:
+                    error_message = st.session_state.get(
+                        f"save_error_{book['id']}", "Unknown Error"
                     )
+                    st.error(f"❌ Failed to save book: {error_message}")
 
         # Expand book details if selected
         if (
@@ -142,20 +197,3 @@ if st.session_state.ai_recommendations:
                 st.write(f"**Description:** {book_details.get('description', 'N/A')}")
 
         st.write("---")
-
-# Show success message for saved book
-if st.session_state.save_clicked and st.session_state.saved_book_id:
-    book_id = st.session_state.saved_book_id
-
-    user = get_user(st.session_state.username)
-    save_response = requests.post(
-        f"{API_URL}/google-books/{book_id}/save", json={"user_id": user.id}
-    )
-
-    if save_response.ok:
-        st.success("✅ Book saved successfully!")
-    else:
-        st.error(f"❌ Failed to save book: {save_response.text}")
-
-    st.session_state.saved_book_id = None
-    st.session_state.save_clicked = False
