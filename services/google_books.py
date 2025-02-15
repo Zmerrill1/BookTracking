@@ -1,4 +1,5 @@
 import textwrap
+import urllib.parse
 
 import httpx
 from bs4 import BeautifulSoup
@@ -11,13 +12,16 @@ SEARCH_URL = BASE_URL + "?q={}&langRestrict=en"
 def search_books(term: str):
     """Search books by term"""
 
-    query = SEARCH_URL.format(term)
+    encoded_term = urllib.parse.quote(term)
+    query = SEARCH_URL.format(encoded_term)
+
     response = httpx.get(query)
     response.raise_for_status()
 
     data = response.json()
 
     if "items" not in data or not data["items"]:
+        print(f"No books found for: {term}")
         return []
 
     books = []
@@ -43,19 +47,14 @@ def search_books(term: str):
             author.lower() for author in authors if isinstance(author, str)
         ]
 
-        if isinstance(term_lower, str) and isinstance(title_lower, str):
-            title_match = term_lower in title_lower
-        else:
-            title_match = False
-
-        if isinstance(term_lower, str) and all(
-            isinstance(author, str) for author in authors_lower
-        ):
-            author_match = any(term_lower in author for author in authors_lower)
-        else:
-            author_match = False
+        term_words = term_lower.split()
+        title_match = any(word in title_lower for word in term_words)
+        author_match = any(
+            any(word in author for author in authors_lower) for word in term_words
+        )
 
         if not title_match and not author_match:
+            print(f"Filtered out: {title}")
             continue
 
         books.append(

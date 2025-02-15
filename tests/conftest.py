@@ -36,6 +36,12 @@ def client_fixture(session: Session):
     app.dependency_overrides.clear()
 
 
+@pytest.fixture(name="auth_client")
+def auth_client_fixture(client: TestClient, user_token: str):
+    client.headers.update({"Authorization": f"Bearer {user_token}"})
+    return client
+
+
 # --------------------
 # USER FIXTURES
 # --------------------
@@ -56,7 +62,7 @@ def create_test_user_fixture(session: Session):
 @pytest.fixture(name="user_token")
 def user_token_fixture(client, create_test_user):
     response = client.post(
-        "/token",
+        "/auth/token",
         data={"username": "validuser", "password": "password123"},
         headers={"Content-type": "application/x-www-form-urlencoded"},
     )

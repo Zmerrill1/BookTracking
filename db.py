@@ -4,7 +4,11 @@ from config import settings
 from models import User
 
 DATABASE_URL = settings.DATABASE_URL
-engine = create_engine(DATABASE_URL)
+
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+engine = create_engine(DATABASE_URL, pool_size=10, max_overflow=20)
 
 
 def get_session():

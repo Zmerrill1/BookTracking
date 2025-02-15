@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 from datetime import datetime
+from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query
+from sqlalchemy import desc
 from sqlmodel import Session, select
 
 from auth import get_current_user
@@ -17,6 +19,7 @@ from models import (
     SaveBookRequest,
     StatusEnum,
     User,
+    UserBookResponse,
     UserBookStatus,
     UserBookStatusUpdate,
     UserRead,
@@ -70,6 +73,18 @@ def get_recommendations(
     return recommendations
 
 
+def parse_published_date(date_str: str) -> Optional[datetime.date]:
+    if not date_str or date_str == "N/A":
+        return None
+
+    for fmt in ("%Y-%m-%d", "%Y-%m", "%Y"):
+        try:
+            return datetime.strptime(date_str, fmt).date()
+        except ValueError:
+            continue
+    return None
+
+
 @app.get("/users/", response_model=list[UserRead])
 def get_users(
     current_user: User = Depends(get_current_user),
@@ -118,18 +133,44 @@ def add_user_book(
     return db_user_book
 
 
-@app.get("/user-books/", response_model=list[UserBookStatus])
+@app.get("/user-books/", response_model=list[UserBookResponse])
 def get_user_books(
     user_id: int,
     status: str = None,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    query = select(UserBookStatus).where(UserBookStatus.user_id == user_id)
+    query = (
+        select(UserBookStatus, Book)
+        .join(Book, UserBookStatus.book_id == Book.id)
+        .where(UserBookStatus.user_id == user_id)
+        .order_by(desc(UserBookStatus.created_at))
+    )
+
     if status:
         query = query.where(UserBookStatus.status == status)
     user_books = session.exec(query).all()
-    return user_books
+
+    if not user_books:
+        raise HTTPException(status_code=404, detail="No saved books found.")
+
+    books_with_details = [
+        UserBookResponse(
+            id=book.id,
+            title=book.title,
+            bookid=book.bookid,
+            description=book.description,
+            authors=book.authors,
+            publisher=book.publisher,
+            published_date=book.published_date,
+            created_at=user_book_status.created_at,
+            status=user_book_status.status,
+            rating=user_book_status.rating,
+            notes=user_book_status.notes,
+        )
+        for user_book_status, book in user_books
+    ]
+    return books_with_details
 
 
 @app.patch("/user-books/{user_id}/{book_id}/", response_model=UserBookStatus)
@@ -247,9 +288,7 @@ def save_google_book(
             description=clean_and_shorten_description(details.get("description", "")),
             authors=", ".join(details.get("authors", [])),
             publisher=details.get("publisher", "N/A"),
-            published_date=datetime.strptime(
-                details.get("publishedDate", "N/A"), "%Y-%m-%d"
-            ).date(),
+            published_date=parse_published_date(details.get("publishedDate", "N/A")),
         )
         session.add(db_book)
         session.commit()
