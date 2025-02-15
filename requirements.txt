@@ -1,0 +1,5 @@
+uv
+protobuf
+google-auth
+google-auth-oauthlib
+streamlit
