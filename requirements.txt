@@ -1,5 +1,59 @@
-uv
-protobuf
-google-auth
-google-auth-oauthlib
-streamlit
+# Web Framework
+streamlit>=1.41.1
+fastapi[standard]>=0.115.6
+uvicorn>=0.34.0
+starlette==0.41.3
+
+# Database
+sqlalchemy==2.0.37
+sqlmodel==0.0.22
+psycopg2-binary==2.9.10
+
+# Authentication & Security
+passlib>=1.7.4
+bcrypt>=4.2.1
+pyjwt>=2.10.1
+
+# Config & Environment Variables
+pydantic==2.10.5
+pydantic-settings>=2.7.1
+python-dotenv>=1.0.1
+python-decouple==3.8
+
+# API & HTTP Requests
+httpx==0.28.1
+requests
+
+# HTML Parsing & Web Scraping (if needed)
+beautifulsoup4==4.12.3
+bs4==0.0.2
+soupsieve==2.6
+
+# CLI & Utilities
+click==8.1.8
+typer==0.15.1
+pre-commit>=4.1.0
+shellingham==1.5.4
+rich==13.9.4
+Pygments==2.19.1
+
+# Background Tasks
+anyio==4.8.0
+sniffio==1.3.1
+
+# Markdown & Templates
+markdown-it-py==3.0.0
+mdurl==0.1.2
+Mako==1.3.8
+MarkupSafe==3.0.2
+
+# Google & Authentication
+google-auth>=2.30.0
+google-auth-oauthlib>=1.2.0
+
+# Other Dependencies
+protobuf>=5.29.3
+blinker>=1.9.0
+certifi==2024.12.14
+typing_extensions==4.12.2
+annotated-types==0.7.0
