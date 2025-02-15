@@ -18,8 +18,6 @@ class Settings(BaseSettings):
         extra = "allow"
 
 
-settings = Settings()
-
 if "database" in st.secrets:
     settings = Settings(
         SECRET_KEY=st.secrets["security"]["SECRET_KEY"],
@@ -34,6 +32,8 @@ if "database" in st.secrets:
         POSTGRES_PASSWORD=st.secrets["database"]["POSTGRES_PASSWORD"],
         POSTGRES_DB=st.secrets["database"]["POSTGRES_DB"],
     )
+else:
+    settings = Settings()
 
 if settings.DATABASE_URL.startswith("postgres://"):
     settings.DATABASE_URL = settings.DATABASE_URL.replace(
