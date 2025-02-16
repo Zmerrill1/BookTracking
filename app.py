@@ -10,6 +10,15 @@ st.set_page_config(page_title="Book Tracker", layout="centered")
 
 st.write("current DATABASE_URL:", os.getenv("DATABASE_URL"))
 st.write("All Secrets:", st.secrets.to_dict())
+
+if "database" in st.secrets:
+    st.write("✅ Found 'database' in secrets.")
+    st.write(
+        "🔹 DATABASE_URL:", st.secrets["database"].get("DATABASE_URL", "❌ Not Found")
+    )
+else:
+    st.write("❌ 'database' section not found in secrets.")
+
 st.title("📚 ReadRadar")
 
 API_URL = settings.API_URL
