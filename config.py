@@ -74,4 +74,4 @@ if settings.DATABASE_URL.startswith("postgres://"):
     )
 
 # Debugging: Print final DATABASE_URL value
-print("🚀 Final DATABASE_URL:", settings.DATABASE_URL)
+st.write("🚀 Final DATABASE_URL:", settings.DATABASE_URL)
