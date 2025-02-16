@@ -13,6 +13,9 @@ GOOGLE_BOOKS_SEARCH_URL = f"{API_URL}/google-books/search/"
 GOOGLE_BOOKS_DETAILS_URL = f"{API_URL}/google-books/details/"
 BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
 
+st.session_state.setdefault("access_toke", None)
+st.write("🔑 Access Token:", st.session_state.access_token)
+
 st.title("📚 Saved Books")
 
 # Ensure session state variables exist
