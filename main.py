@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Optional
 
+import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy import desc
 from sqlmodel import Session, select
@@ -83,6 +84,15 @@ def parse_published_date(date_str: str) -> Optional[datetime.date]:
         except ValueError:
             continue
     return None
+
+
+@app.get("/")
+def root():
+    return {"message": "FastAPI is running!"}
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 @app.get("/users/", response_model=list[UserRead])
