@@ -38,17 +38,21 @@ def load_settings():
         )
     elif "database" in st.secrets:  # Check if running in Streamlit
         return Settings(
-            SECRET_KEY=st.secrets["security"]["SECRET_KEY"],
-            ALGORITHM=st.secrets["security"]["ALGORITHM"],
-            ACCESS_TOKEN_EXPIRE_MINUTES=st.secrets["security"][
-                "ACCESS_TOKEN_EXPIRE_MINUTES"
-            ],
-            API_URL=st.secrets["api"]["API_URL"],
-            OPENAI_API_KEY=st.secrets["openai"]["OPENAI_API_KEY"],
-            DATABASE_URL=st.secrets["database"]["DATABASE_URL"],
-            POSTGRES_USER=st.secrets["database"]["POSTGRES_USER"],
-            POSTGRES_PASSWORD=st.secrets["database"]["POSTGRES_PASSWORD"],
-            POSTGRES_DB=st.secrets["database"]["POSTGRES_DB"],
+            SECRET_KEY=st.secrets.get("security", {}).get(
+                "SECRET_KEY", "default_secret"
+            ),
+            ALGORITHM=st.secrets.get("security", {}).get("ALGORITHM", "HS256"),
+            ACCESS_TOKEN_EXPIRE_MINUTES=st.secrets.get("security", {}).get(
+                "ACCESS_TOKEN_EXPIRE_MINUTES", 30
+            ),
+            API_URL=st.secrets.get("api", {}).get("API_URL", "http://localhost:8000"),
+            OPENAI_API_KEY=st.secrets.get("openai", {}).get("OPENAI_API_KEY", ""),
+            DATABASE_URL=st.secrets.get("database", {}).get("DATABASE_URL", ""),
+            POSTGRES_USER=st.secrets.get("database", {}).get("POSTGRES_USER", ""),
+            POSTGRES_PASSWORD=st.secrets.get("database", {}).get(
+                "POSTGRES_PASSWORD", ""
+            ),
+            POSTGRES_DB=st.secrets.get("database", {}).get("POSTGRES_DB", ""),
         )
     else:
         return Settings()  # Default to .env values for local development
