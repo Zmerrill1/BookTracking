@@ -72,6 +72,3 @@ if settings.DATABASE_URL.startswith("postgres://"):
     settings.DATABASE_URL = settings.DATABASE_URL.replace(
         "postgres://", "postgresql://", 1
     )
-
-# Debugging: Print final DATABASE_URL value
-st.write("🚀 Final DATABASE_URL:", settings.DATABASE_URL)
