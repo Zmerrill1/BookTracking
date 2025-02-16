@@ -34,6 +34,7 @@ from services.google_books import (
 from services.marvin_ai import recommend_similar_books
 
 OPENAI_API_KEY = settings.OPENAI_API_KEY
+API_URL = settings.API_URL
 
 
 @asynccontextmanager
@@ -48,7 +49,7 @@ app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[f"{API_URL}"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
