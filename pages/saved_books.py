@@ -5,7 +5,6 @@ import requests
 import streamlit as st
 
 from config import settings
-from db import get_user
 
 API_URL = settings.API_URL
 SAVED_BOOKS_URL = f"{API_URL}/user-books/"
@@ -27,6 +26,28 @@ st.session_state.setdefault("selected_book_details", None)
 st.session_state.setdefault("saved_book_id", None)
 st.session_state.setdefault("save_clicked", False)
 st.session_state.setdefault("page", "Saved Books")
+
+
+def get_user_from_api():
+    if not st.session_state.access_token:
+        return None
+
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+    response = requests.get(f"{API_URL}/auth/users/me", headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error(f"Failed to fetch user data: {response.text}")
+        return None
+
+
+user = get_user_from_api()
+if not user:
+    st.error("User not found. Please log in again")
+    st.stop()
+
+st.session_state.user_id = user["id"]
 
 
 if "page" not in st.session_state:
@@ -106,10 +127,14 @@ def save_book(book_id):
         return
 
     headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
-    user = get_user(st.session_state.username)
+    user = get_user_from_api()
+    if not user:
+        st.error("Failed to retrieve user info. Please log in again.")
+        return
+
     save_response = requests.post(
         f"{API_URL}/google-books/{book_id}/save",
-        json={"user_id": user.id},
+        json={"user_id": user["id"]},
         headers=headers,
     )
 
@@ -120,11 +145,9 @@ def save_book(book_id):
         st.session_state[f"save_error_{book_id}"] = save_response.text
 
 
-def fetch_saved_books(user_id):
+def fetch_saved_books():
     headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
-    response = requests.get(
-        SAVED_BOOKS_URL, params={"user_id": user_id}, headers=headers
-    )
+    response = requests.get(SAVED_BOOKS_URL, headers=headers)
     return response.json() if response.status_code == 200 else []
 
 
@@ -147,12 +170,13 @@ def parse_authors(authors):
 
 
 def fetch_recommendations(book_id):
-    rec_url = f"{API_URL}/books/{book['id']}/recommendations"
+    rec_url = f"{API_URL}/books/{book_id}/recommendations"
     response = requests.get(rec_url)
     return response.json() if response.status_code == 200 else ""
 
 
-def update_book_status(user_id, book_id, status, rating, notes):
+def update_book_status(book_id, status, rating, notes):
+    user_id = st.session_state.user_id
     update_url = f"{API_URL}/user-books/{user_id}/{book_id}/"
     payload = {
         "status": status,
@@ -245,8 +269,8 @@ def display_book(book):
             col5, col6 = st.columns([1, 1])
             with col5:
                 if st.button("Update", key=f"update_{book_id}"):
-                    user = get_user(st.session_state.username)
-                    update_url = f"{API_URL}/user-books/{user.id}/{book_id}/"
+                    user_id = st.session_state.user_id
+                    update_url = f"{API_URL}/user-books/{user_id}/{book_id}/"
                     payload = {
                         "status": st.session_state[f"status_{book_id}"],
                         "rating": st.session_state[f"rating_{book_id}"],
@@ -338,15 +362,15 @@ def delete_book(book_id):
         return
 
     headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
-    user = get_user(st.session_state.username)
+    user_id = st.session_state.user_id
 
     delete_response = requests.delete(
-        f"{API_URL}/user-books/{user.id}/{book_id}/", headers=headers
+        f"{API_URL}/user-books/{user_id}/{book_id}/", headers=headers
     )
 
     if delete_response.status_code == 204:
         st.success(f"✅ Book '{book_id}' deleted successfully!")
-        st.session_state.saved_books = fetch_saved_books(user.id)
+        st.session_state.saved_books = fetch_saved_books()
         st.rerun()
     else:
         st.error("❌ Failed to delete book.")
@@ -356,13 +380,7 @@ if "username" not in st.session_state or not st.session_state.username:
     st.error("You need to be logged in to view saved books.")
     st.stop()
 
-user = get_user(st.session_state.username)
-
-if user is None:
-    st.error("User not found. Please log in again.")
-    st.stop()
-
-saved_books = fetch_saved_books(user.id)
+saved_books = fetch_saved_books()
 
 
 if saved_books:

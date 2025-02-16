@@ -2,7 +2,6 @@ import requests
 import streamlit as st
 
 from config import settings
-from db import get_user
 
 API_URL = settings.API_URL
 RECOMMENDATIONS_URL = f"{API_URL}/recommend"
@@ -19,6 +18,20 @@ st.session_state.setdefault("selected_book_details", None)
 st.session_state.setdefault("saved_book_id", None)
 st.session_state.setdefault("save_clicked", False)
 st.session_state.setdefault("page", "AI Recommendations")
+
+
+def get_user_from_api():
+    if not st.session_state.access_token:
+        return None
+
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+    response = requests.get(f"{API_URL}/auth/users/me", headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error(f"Failed to fetch user data: {response.text}")
+        return None
 
 
 if st.session_state.access_token:
@@ -102,10 +115,10 @@ def save_book(book_id):
         return
 
     headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
-    user = get_user(st.session_state.username)
+    user_id = st.session_state.user_id
     save_response = requests.post(
         f"{API_URL}/google-books/{book_id}/save",
-        json={"user_id": user.id},
+        json={"user_id": user_id},
         headers=headers,
     )
     if save_response.ok:
@@ -121,8 +134,11 @@ with st.form(key="search_form"):
     query_book_title = st.text_input("Enter a book title for recommendation:")
     submit_button = st.form_submit_button("Get Recommendations")
 
-if query_book_title and submit_button:
-    fetch_recommendations(query_book_title)
+if submit_button:
+    if not query_book_title.strip():
+        st.warning("Please enter a book title before requesting recommendations.")
+    else:
+        fetch_recommendations(query_book_title)
 
 # Display AI Recommendations
 if st.session_state.ai_recommendations:

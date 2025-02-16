@@ -2,7 +2,6 @@ import requests
 import streamlit as st
 
 from config import settings
-from db import get_user
 
 st.set_page_config(page_title="Book Tracker", layout="centered")
 
@@ -22,6 +21,20 @@ st.session_state.setdefault("selected_book_id", None)
 st.session_state.setdefault("selected_book_details", None)
 st.session_state.setdefault("search_results", [])
 st.session_state.setdefault("page", "Search Books")
+
+
+def get_user_from_api():
+    if not st.session_state.access_token:
+        return None
+
+    headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
+    response = requests.get(f"{API_URL}/auth/users/me", headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error(f"Failed to fetch user data: {response.text}")
+        return None
 
 
 if st.session_state.access_token:
@@ -94,10 +107,9 @@ def save_book(book_id):
         return
 
     headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
-    user = get_user(st.session_state.username)
+
     save_response = requests.post(
         f"{API_URL}/google-books/{book_id}/save",
-        json={"user_id": user.id},
         headers=headers,
     )
 
