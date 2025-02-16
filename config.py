@@ -37,6 +37,12 @@ def load_settings():
             POSTGRES_DB=os.getenv("POSTGRES_DB", ""),
         )
     elif "database" in st.secrets:  # Check if running in Streamlit
+        print("✅ Found 'database' in secrets.")
+        print(
+            "🔹 DATABASE_URL from secrets:",
+            st.secrets["database"].get("DATABASE_URL", "❌ Not Found"),
+        )
+
         return Settings(
             SECRET_KEY=st.secrets.get("security", {}).get(
                 "SECRET_KEY", "default_secret"
@@ -55,6 +61,7 @@ def load_settings():
             POSTGRES_DB=st.secrets.get("database", {}).get("POSTGRES_DB", ""),
         )
     else:
+        print("❌ No 'database' found in secrets.")
         return Settings()  # Default to .env values for local development
 
 
@@ -65,3 +72,6 @@ if settings.DATABASE_URL.startswith("postgres://"):
     settings.DATABASE_URL = settings.DATABASE_URL.replace(
         "postgres://", "postgresql://", 1
     )
+
+# Debugging: Print final DATABASE_URL value
+print("🚀 Final DATABASE_URL:", settings.DATABASE_URL)
