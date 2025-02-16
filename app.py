@@ -1,3 +1,5 @@
+import os
+
 import requests
 import streamlit as st
 
@@ -6,6 +8,7 @@ from db import get_user
 
 st.set_page_config(page_title="Book Tracker", layout="centered")
 
+st.write("current DATABASE_URL:", os.getenv("DATABASE_URL"))
 st.title("📚 ReadRadar")
 
 API_URL = settings.API_URL
