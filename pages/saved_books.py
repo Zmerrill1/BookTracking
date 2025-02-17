@@ -12,8 +12,6 @@ GOOGLE_BOOKS_SEARCH_URL = f"{API_URL}/google-books/search/"
 GOOGLE_BOOKS_DETAILS_URL = f"{API_URL}/google-books/details/"
 BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=frontcover&img=1&zoom=1&source=gbs_gdata"
 
-st.session_state.setdefault("access_toke", None)
-st.write("🔑 Access Token:", st.session_state.access_token)
 
 st.title("📚 Saved Books")
 
@@ -145,9 +143,11 @@ def save_book(book_id):
         st.session_state[f"save_error_{book_id}"] = save_response.text
 
 
-def fetch_saved_books():
+def fetch_saved_books(user_id):
     headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
-    response = requests.get(SAVED_BOOKS_URL, headers=headers)
+    response = requests.get(
+        SAVED_BOOKS_URL, params={"user_id": user_id}, headers=headers
+    )
     return response.json() if response.status_code == 200 else []
 
 
@@ -380,7 +380,7 @@ if "username" not in st.session_state or not st.session_state.username:
     st.error("You need to be logged in to view saved books.")
     st.stop()
 
-saved_books = fetch_saved_books()
+saved_books = fetch_saved_books(st.session_state.user_id)
 
 
 if saved_books:
