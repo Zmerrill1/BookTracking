@@ -26,8 +26,6 @@ st.session_state.setdefault("saved_book_id", None)
 st.session_state.setdefault("save_clicked", False)
 st.session_state.setdefault("page", "Saved Books")
 
-st.write(f"User ID: {st.session_state.get('user_id')}")
-
 
 def get_user_from_api():
     if not st.session_state.access_token:
@@ -37,7 +35,9 @@ def get_user_from_api():
     response = requests.get(f"{API_URL}/auth/users/me", headers=headers)
 
     if response.status_code == 200:
-        return response.json()
+        user_data = response.json()
+        st.write("User data from API:", user_data)
+        return user_data
     else:
         st.error(f"Failed to fetch user data: {response.text}")
         return None
