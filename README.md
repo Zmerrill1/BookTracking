@@ -89,7 +89,8 @@ The AI suggests books based on themes, genres, and patterns.
     Set up environment variables:
     ```
 
-  cp .env.example .env  # Then edit with your API keys and DB settings
+  cp .env.example .env  Then edit with your API keys and DB settings
+  
   Run database migrations:
     ```bash
     alembic upgrade head
