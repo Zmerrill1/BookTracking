@@ -1,142 +1,104 @@
-Book Tracker & Recommendation App
+📚 Book Tracker & Recommendation App
 
-Overview
+This is a FastAPI + Streamlit project that allows users to search for books, track their reading, and receive AI-generated book recommendations.
 
-This project is a Book Tracker & Recommendation App built with FastAPI and Streamlit. It allows users to search for books using the Google Books API, save books to their personal library, and receive AI-based book recommendations via Marvin AI.
+🚀 Features
 
-Features
+📖 Search Books: Search for books using the Google Books API.
+📚 Track Your Reads: Save books to a personal reading list.
+🤖 AI Recommendations: Get book recommendations based on your interests.
+📊 Interactive UI: A user-friendly interface built with Streamlit.
+🛠️ Tech Stack
 
-📚 Search Books - Find books using the Google Books API.
-
-💾 Save Books - Add books to a personal reading list.
-
-🤖 AI-Powered Recommendations - Get book recommendations based on search results and saved books.
-
-🏗 Modern Stack - FastAPI for the backend, PostgreSQL for the database, and Streamlit for the frontend.
-
-🚀 Deployed - FastAPI backend is deployed on Fly.io, and Streamlit frontend is hosted on Streamlit Cloud.
-
-Tech Stack
-
-Backend: FastAPI, PostgreSQL, Alembic (migrations)
-
+Backend: FastAPI, PostgreSQL, Alembic (for migrations)
 Frontend: Streamlit
+External APIs: Google Books API, Marvin AI (for recommendations)
+Deployment: Fly.io (backend), Streamlit Cloud (frontend)
+📡 API Endpoints
 
-Database: PostgreSQL
+🔍 Book Search
+GET /google-books/search?q={query}
+Searches for books using the Google Books API.
+Query Params: q (book title, author, or keyword)
+Response: Returns a list of top 10 matching books.
+📚 User Library
+POST /books/
+Adds a book to the user's personal collection.
+Body: { "title": "Book Name", "author": "Author", "isbn": "123456789" }
+Response: Returns the saved book details.
+GET /books/
+Retrieves all books in the user's saved collection.
+DELETE /books/{book_id}
+Removes a book from the collection.
+Response: { "message": "Book deleted successfully" }
+🤖 AI Recommendations
+POST /recommendations/
+Generates book recommendations based on a user's saved books.
+Body: { "books": ["Book 1", "Book 2"] }
+Response: A list of recommended books.
+🤖 AI-Powered Book Recommendations
 
-AI Integration: Marvin AI for book recommendations
+This app uses Marvin AI to generate personalized book recommendations.
 
-Deployment: FastAPI on Fly.io, Streamlit on Streamlit Cloud
+🔹 How It Works:
+The user saves books they’ve read or are interested in.
+The backend sends this data to the AI recommendation system.
+The AI suggests books based on themes, genres, and patterns.
+📌 Example Output:
 
-Installation
+{
+  "recommendations": [
+    { "title": "The Hobbit", "author": "J.R.R. Tolkien" },
+    { "title": "The Name of the Wind", "author": "Patrick Rothfuss" }
+  ]
+}
+🎯 Installation & Setup
 
-1. Clone the repository
-
+1️⃣ Clone the Repository
 git clone https://github.com/yourusername/book-tracker.git
 cd book-tracker
-
-2. Set up the backend
-
-Install dependencies
+2️⃣ Set Up Backend (FastAPI)
+Ensure you have Python installed, then create a virtual environment:
 
 uv venv
-source .venv/bin/activate  # (or `venv\Scripts\activate` on Windows)
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+Install dependencies:
+
 uv pip install -r requirements.txt
+Set up environment variables:
 
-Set up environment variables
-
-Create a .env file and add the necessary environment variables:
-
-DATABASE_URL=postgresql://user:password@localhost:5432/book_tracker
-GOOGLE_BOOKS_API_KEY=your_google_books_api_key
-MARVIN_API_KEY=your_marvin_api_key
-
-Run database migrations
+cp .env.example .env  # Then edit with your API keys and DB settings
+Run database migrations:
 
 alembic upgrade head
-
-Start the FastAPI server
+Start the FastAPI server:
 
 uvicorn app.main:app --reload
-
-The backend will be available at http://127.0.0.1:8000.
-
-3. Set up the frontend
-
-Install Streamlit dependencies
+3️⃣ Set Up Frontend (Streamlit)
+Navigate to the frontend directory and install dependencies:
 
 cd frontend
-pip install -r requirements.txt
-
-Run the Streamlit app
+uv pip install -r requirements.txt
+Run the Streamlit app:
 
 streamlit run app.py
+🌐 Deployment
 
-The frontend will be available at http://localhost:8501.
+Backend: Deployed on Fly.io
+Frontend: Deployed on Streamlit Cloud
+To deploy updates:
 
-Usage
+flyctl deploy  # For backend
+git push origin main  # If frontend is linked to Streamlit Cloud
+🔥 Future Features
 
-Search for books using keywords.
+📅 Reading progress tracking
+🏆 Challenges & goals
+📝 Personal notes & reviews
+📝 Contributing
 
-View book details and save books to your personal library.
+Want to contribute? Feel free to open issues or submit PRs!
 
-Get AI-powered recommendations based on your saved books.
-
-Explore your reading list and discover new books.
-
-API Endpoints
-
-Method
-
-Endpoint
-
-Description
-
-GET
-
-/google-books/search?query=book_title
-
-Search for books using Google Books API
-
-POST
-
-/books/
-
-Save a book to the database
-
-GET
-
-/books/
-
-Retrieve saved books
-
-POST
-
-/recommendations/
-
-Get AI-based book recommendations
-
-Deployment
-
-The project is deployed using:
-
-FastAPI Backend → Fly.io
-
-Streamlit Frontend → Streamlit Cloud
-
-Contributing
-
-Contributions are welcome! Feel free to open an issue or submit a pull request.
-
-License
+📄 License
 
 This project is licensed under the MIT License.
-
-Contact
-
-For any questions or suggestions, feel free to reach out:
-
-GitHub: yourusername
-
-Email: your.email@example.com
-
