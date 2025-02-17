@@ -51,7 +51,7 @@ with st.form("Signup"):
 
     if submitted:
         response = requests.post(
-            f"{API_URL}/users/",
+            f"{API_URL}/auth/users/",
             json={"username": username, "email": email, "password": password},
         )
         if response.status_code == 200:

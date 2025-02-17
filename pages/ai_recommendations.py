@@ -80,12 +80,6 @@ if page != st.session_state.page:
 def fetch_recommendations(query):
     response = requests.post(RECOMMENDATIONS_URL, json={"title": query})
 
-    st.write(
-        f"📤 Sending AI Recommendation Request: {{'title': '{query}'}}"
-    )  # Debugging output
-    st.write(f"📥 Response Status: {response.status_code}")  # Debugging output
-    st.write(f"📥 Response Content: {response.text}")
-
     if response.status_code == 200:
         st.session_state.ai_recommendations = response.json()
     else:
