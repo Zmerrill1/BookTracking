@@ -14,6 +14,7 @@ BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=fr
 
 
 st.title("📚 Saved Books")
+st.write(f"User ID: {st.session_state.get('user_id')}")
 
 # Ensure session state variables exist
 st.session_state.setdefault("access_token", None)
