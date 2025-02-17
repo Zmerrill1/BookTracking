@@ -54,7 +54,7 @@ with st.form("Signup"):
             f"{API_URL}/auth/users/",
             json={"username": username, "email": email, "password": password},
         )
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             st.success("Account created! Please log in.")
             st.switch_page("pages/login.py")
         else:
