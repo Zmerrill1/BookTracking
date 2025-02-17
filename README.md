@@ -23,12 +23,31 @@ Checkout the live application on Streamlit: [ReadRadar](https://booktracking-huv
 - **🤖 AI Recommendations**: Get book recommendations based on your interests.
 - **📊 Interactive UI**: A user-friendly interface built with Streamlit.
 
-## 🛠️ Tech Stack
-- Backend: FastAPI, PostgreSQL, Alembic (for migrations)
-- Frontend: Streamlit
-- External APIs: Google Books API, Marvin AI (for recommendations)
-- Deployment: Fly.io (backend), Streamlit Cloud (frontend)
 
+## 📡 API Endpoints
+
+### 🔍 Book Search  
+#### `GET /google-books/search?q={query}`  
+Searches for books using the Google Books API.  
+
+- **Query Params:** `q` (book title, author, or keyword)  
+- **Response:** Returns a list of the top 10 matching books.  
+
+---
+
+### 📚 User Library  
+
+#### `POST /books/`  
+Adds a book to the user's personal collection.  
+
+- **Body:**  
+  ```json
+  {
+    "title": "Book Name",
+    "author": "Author",
+    "isbn": "123456789"
+  }
+  
 
 ## 📡 API Endpoints
 
@@ -57,9 +76,10 @@ Response: A list of recommended books.
 This app uses Marvin AI to generate personalized book recommendations.
 
 🔹 How It Works:
-The user saves books they’ve read or are interested in.
-The backend sends this data to the AI recommendation system.
-The AI suggests books based on themes, genres, and patterns.
+1. The user saves books they’ve read or are interested in.
+2. The backend sends this data to the AI recommendation system.
+3. The AI suggests books based on themes, genres, and patterns.
+
 📌 Example Output:
   ```bash
   {
@@ -111,23 +131,35 @@ The AI suggests books based on themes, genres, and patterns.
   ```
 
     
-🌐 Deployment
-
-Backend: Deployed on Fly.io
-Frontend: Deployed on Streamlit Cloud
+## 🛠️ Tech Stack
+- Backend: [FastAPI](https://fastapi.tiangolo.com), [PostgreSQL](https://www.postgresql.org), [Alembic (for migrations)](https://pypi.org/project/alembic/)
+- Frontend: [Streamlit](https://streamlit.io)
+- External APIs: [Google Books API](https://developers.google.com/books), [Marvin AI (for recommendations)](https://www.askmarvin.ai)
+- Deployment: [Fly.io (backend)](https://fly.io), [Streamlit Cloud (frontend)](https://streamlit.io/cloud)
+  
 To deploy updates:
+- For backend:
+  ```bash
+  flyctl deploy
+  ```
+- For frontend if linked to Streamlit cloud:
+  ```bash
+  git push origin main
+  ```
+  
+## 🔥 Future Features
 
-flyctl deploy  # For backend
-git push origin main  # If frontend is linked to Streamlit Cloud
-🔥 Future Features
+- 📅 Reading progress tracking
+- 🏆 Challenges & goals
+- 📝 Contributing
 
-📅 Reading progress tracking
-🏆 Challenges & goals
-📝 Personal notes & reviews
-📝 Contributing
 
-Want to contribute? Feel free to open issues or submit PRs!
-
-📄 License
+## 📄 License
 
 This project is licensed under the MIT License.
+
+## Acknowledgements
+
+- [PyBites PDM Program](https://pybit.es/catalogue/the-pdm-program/)
+- [FastAPI Documentation](https://fastapi.tiangolo.com)
+
