@@ -8,7 +8,7 @@ Checkout the live application on Streamlit: [ReadRadar](https://booktracking-huv
 
 ## Table of Contents
 1. [Features](#features)
-2. [Installation](#installation)
+2. [API Endpoints](#API Endpoints)
 3. [Usage](#usage)
 4. [Configuration](#configuration)
 5. [Technologies Used](#technologies-used)
