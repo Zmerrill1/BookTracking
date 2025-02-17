@@ -8,13 +8,12 @@ Checkout the live application on Streamlit: [ReadRadar](https://booktracking-huv
 
 ## Table of Contents
 1. [Features](#features)
-2. [API Endpoints](#API Endpoints)
-3. [Usage](#usage)
-4. [Configuration](#configuration)
-5. [Technologies Used](#technologies-used)
-6. [Contributing](#contributing)
-7. [License](#license)
-8. [Acknowledgments](#acknowledgments)
+2. [API Endpoints](#API-Endpoints)
+3. [Installation & Setup](#Installation-&-Setup)
+4. [Tech Stack](#Tech-Stack)
+5. [Future Features](#future-features)
+6. [License](#license)
+7. [Acknowledgments](#acknowledgments)
 
 ## 🚀 Features
 
@@ -45,7 +44,6 @@ Adds a book to the user's personal collection.
   {
     "title": "Book Name",
     "author": "Author",
-    "isbn": "123456789"
   }
 - Response: Returns the saved book details.
 
@@ -159,3 +157,5 @@ This project is licensed under the MIT License.
 - [PyBites PDM Program](https://pybit.es/catalogue/the-pdm-program/)
 - [FastAPI Documentation](https://fastapi.tiangolo.com)
 
+---
+Feel free to suggest any improvements or share your feedback by logging an issue against this repo!
