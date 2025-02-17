@@ -1,15 +1,29 @@
-📚 Book Tracker & Recommendation App
+# 📚 Book Tracker & Recommendation App
 
 This is a FastAPI + Streamlit project that allows users to search for books, track their reading, and receive AI-generated book recommendations.
 
-🚀 Features
+## Live Demo
+
+Checkout the live application on Streamlit: [ReadRadar](https://booktracking-huv5uj2rm5ec4rqgbf6tgn.streamlit.app)
+
+## Table of Contents
+1. [Features](#features)
+2. [Installation](#installation)
+3. [Usage](#usage)
+4. [Configuration](#configuration)
+5. [Technologies Used](#technologies-used)
+6. [Contributing](#contributing)
+7. [License](#license)
+8. [Acknowledgments](#acknowledgments)
+
+## 🚀 Features
 
 📖 Search Books: Search for books using the Google Books API.
 📚 Track Your Reads: Save books to a personal reading list.
 🤖 AI Recommendations: Get book recommendations based on your interests.
 📊 Interactive UI: A user-friendly interface built with Streamlit.
-🛠️ Tech Stack
 
+## 🛠️ Tech Stack
 Backend: FastAPI, PostgreSQL, Alembic (for migrations)
 Frontend: Streamlit
 External APIs: Google Books API, Marvin AI (for recommendations)
