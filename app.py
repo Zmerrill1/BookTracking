@@ -108,8 +108,12 @@ def save_book(book_id):
 
     headers = {"Authorization": f"Bearer {st.session_state.access_token}"}
 
+    user = get_user_from_api()
+    payload = {"user_id": user["id"]}
+
     save_response = requests.post(
         f"{API_URL}/google-books/{book_id}/save",
+        json=payload,
         headers=headers,
     )
 
