@@ -70,36 +70,42 @@ The AI suggests books based on themes, genres, and patterns.
 }
 🎯 Installation & Setup
 
-1. Clone the Repository
-   '''bash
+1. Clone the Repository:
+   ```bash
    git clone https://github.com/yourusername/book-tracker.git
    cd book-tracker
-   '''
-2️⃣ Set Up Backend (FastAPI)
+   ```
+2. Set Up Backend (FastAPI):
 Ensure you have Python installed, then create a virtual environment:
-
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+  ```bash
+  uv venv
+  source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+  ```
 Install dependencies:
+  ```bash
+  uv pip install -r requirements.txt
+  Set up environment variables:
+  ```
 
-uv pip install -r requirements.txt
-Set up environment variables:
-
-cp .env.example .env  # Then edit with your API keys and DB settings
+  cp .env.example .env  # Then edit with your API keys and DB settings
 Run database migrations:
-
-alembic upgrade head
+  ```bash
+  alembic upgrade head
+  ```
 Start the FastAPI server:
-
-uvicorn app.main:app --reload
-3️⃣ Set Up Frontend (Streamlit)
+  ```bash
+  uvicorn app.main:app --reload
+  ```
+3. Set Up Frontend (Streamlit):
 Navigate to the frontend directory and install dependencies:
-
-cd frontend
-uv pip install -r requirements.txt
+  ```bash
+  cd frontend
+  uv pip install -r requirements.txt
+  ```
 Run the Streamlit app:
-
-streamlit run app.py
+  ```bash
+  streamlit run app.py
+  ```
 🌐 Deployment
 
 Backend: Deployed on Fly.io
