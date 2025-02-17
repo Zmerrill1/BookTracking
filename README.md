@@ -84,21 +84,21 @@ The AI suggests books based on themes, genres, and patterns.
     source .venv/bin/activate  # On Windows: .venv\Scripts\activate
     ```
   Install dependencies:
-    ```bash
+  ```bash
     uv pip install -r requirements.txt
     Set up environment variables:
-    ```
+  ```
 
   cp .env.example .env  Then edit with your API keys and DB settings
   
   Run database migrations:
-    ```bash
-    alembic upgrade head
-    ```
+  ```bash
+  alembic upgrade head
+  ```
   Start the FastAPI server:
-    ```bash
+  ```bash
     uvicorn app.main:app --reload
-    ```
+  ```
 3. Set Up Frontend (Streamlit):
   Navigate to the frontend directory and install dependencies:
     ```bash
@@ -106,9 +106,9 @@ The AI suggests books based on themes, genres, and patterns.
     uv pip install -r requirements.txt
     ```
   Run the Streamlit app:
-    ```bash
+  ```bash
     streamlit run app.py
-    ```
+  ```
 
     
 🌐 Deployment
