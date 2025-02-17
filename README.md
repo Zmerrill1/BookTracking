@@ -47,7 +47,7 @@ Adds a book to the user's personal collection.
     "author": "Author",
     "isbn": "123456789"
   }
-  Response: Returns the saved book details.
+- Response: Returns the saved book details.
 
 ## 📡 API Endpoints
 
