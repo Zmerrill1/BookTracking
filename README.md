@@ -61,14 +61,16 @@ The user saves books they’ve read or are interested in.
 The backend sends this data to the AI recommendation system.
 The AI suggests books based on themes, genres, and patterns.
 📌 Example Output:
+  ```bash
+  {
+    "recommendations": [
+      { "title": "The Hobbit", "author": "J.R.R. Tolkien" },
+      { "title": "The Name of the Wind", "author": "Patrick Rothfuss" }
+    ]
+  }
+  ```
 
-{
-  "recommendations": [
-    { "title": "The Hobbit", "author": "J.R.R. Tolkien" },
-    { "title": "The Name of the Wind", "author": "Patrick Rothfuss" }
-  ]
-}
-🎯 Installation & Setup
+## 🎯 Installation & Setup
 
 1. Clone the Repository:
    ```bash
@@ -76,36 +78,38 @@ The AI suggests books based on themes, genres, and patterns.
    cd book-tracker
    ```
 2. Set Up Backend (FastAPI):
-Ensure you have Python installed, then create a virtual environment:
-  ```bash
-  uv venv
-  source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-  ```
-Install dependencies:
-  ```bash
-  uv pip install -r requirements.txt
-  Set up environment variables:
-  ```
+  Ensure you have Python installed, then create a virtual environment:
+    ```bash
+    uv venv
+    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+    ```
+  Install dependencies:
+    ```bash
+    uv pip install -r requirements.txt
+    Set up environment variables:
+    ```
 
   cp .env.example .env  # Then edit with your API keys and DB settings
-Run database migrations:
-  ```bash
-  alembic upgrade head
-  ```
-Start the FastAPI server:
-  ```bash
-  uvicorn app.main:app --reload
-  ```
+  Run database migrations:
+    ```bash
+    alembic upgrade head
+    ```
+  Start the FastAPI server:
+    ```bash
+    uvicorn app.main:app --reload
+    ```
 3. Set Up Frontend (Streamlit):
-Navigate to the frontend directory and install dependencies:
-  ```bash
-  cd frontend
-  uv pip install -r requirements.txt
-  ```
-Run the Streamlit app:
-  ```bash
-  streamlit run app.py
-  ```
+  Navigate to the frontend directory and install dependencies:
+    ```bash
+    cd frontend
+    uv pip install -r requirements.txt
+    ```
+  Run the Streamlit app:
+    ```bash
+    streamlit run app.py
+    ```
+
+    
 🌐 Deployment
 
 Backend: Deployed on Fly.io
