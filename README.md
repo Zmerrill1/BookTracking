@@ -49,29 +49,25 @@ Adds a book to the user's personal collection.
   }
 - Response: Returns the saved book details.
 
-## 📡 API Endpoints
-
-🔍 Book Search
-GET /google-books/search?q={query}
-Searches for books using the Google Books API.
-Query Params: q (book title, author, or keyword)
-Response: Returns a list of top 10 matching books.
-📚 User Library
-POST /books/
-Adds a book to the user's personal collection.
-Body: { "title": "Book Name", "author": "Author", "isbn": "123456789" }
-Response: Returns the saved book details.
-GET /books/
+####  `GET /user-books/
 Retrieves all books in the user's saved collection.
-DELETE /books/{book_id}
+
+#### `DELETE /user-books/{user_id/{book_id}/
 Removes a book from the collection.
 Response: { "message": "Book deleted successfully" }
-🤖 AI Recommendations
-POST /recommendations/
+
+
+### 🤖 AI Recommendations
+
+#### `POST /recommendations/
 Generates book recommendations based on a user's saved books.
-Body: { "books": ["Book 1", "Book 2"] }
+-**Body:**
+  ```json
+  { "books": ["Book 1", "Book 2"] }
+  ```
 Response: A list of recommended books.
-🤖 AI-Powered Book Recommendations
+
+###🤖 AI-Powered Book Recommendations
 
 This app uses Marvin AI to generate personalized book recommendations.
 
