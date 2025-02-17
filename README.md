@@ -24,11 +24,13 @@ Checkout the live application on Streamlit: [ReadRadar](https://booktracking-huv
 - **📊 Interactive UI**: A user-friendly interface built with Streamlit.
 
 ## 🛠️ Tech Stack
-Backend: FastAPI, PostgreSQL, Alembic (for migrations)
-Frontend: Streamlit
-External APIs: Google Books API, Marvin AI (for recommendations)
-Deployment: Fly.io (backend), Streamlit Cloud (frontend)
-📡 API Endpoints
+- Backend: FastAPI, PostgreSQL, Alembic (for migrations)
+- Frontend: Streamlit
+- External APIs: Google Books API, Marvin AI (for recommendations)
+- Deployment: Fly.io (backend), Streamlit Cloud (frontend)
+
+
+## 📡 API Endpoints
 
 🔍 Book Search
 GET /google-books/search?q={query}
@@ -68,9 +70,11 @@ The AI suggests books based on themes, genres, and patterns.
 }
 🎯 Installation & Setup
 
-1️⃣ Clone the Repository
-git clone https://github.com/yourusername/book-tracker.git
-cd book-tracker
+1. Clone the Repository
+   '''bash
+   git clone https://github.com/yourusername/book-tracker.git
+   cd book-tracker
+   '''
 2️⃣ Set Up Backend (FastAPI)
 Ensure you have Python installed, then create a virtual environment:
 
