@@ -67,16 +67,16 @@ Generates book recommendations based on a user's saved books.
   ```
 Response: A list of recommended books.
 
-###🤖 AI-Powered Book Recommendations
+### 🤖 AI-Powered Book Recommendations
 
 This app uses Marvin AI to generate personalized book recommendations.
 
-🔹 How It Works:
+How It Works:
 1. The user saves books they’ve read or are interested in.
 2. The backend sends this data to the AI recommendation system.
 3. The AI suggests books based on themes, genres, and patterns.
 
-📌 Example Output:
+Example Output:
   ```bash
   {
     "recommendations": [
