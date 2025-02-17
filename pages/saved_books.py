@@ -50,8 +50,6 @@ if not user:
 
 st.session_state.user_id = user["id"]
 
-# DEBUGGING:
-st.write(f"Session user_id: {st.session_state.get('user_id')}")
 
 if "page" not in st.session_state:
     st.session_state.page = "Search Books"
