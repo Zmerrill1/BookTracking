@@ -30,14 +30,14 @@ Checkout the live application on Streamlit: [ReadRadar](https://booktracking-huv
 #### `GET /google-books/search?q={query}`  
 Searches for books using the Google Books API.  
 
-- **Query Params:** `q` (book title, author, or keyword)  
-- **Response:** Returns a list of the top 10 matching books.  
+- **Query Params:** `term` (book title, author, or keyword)  
+- **Response:** Returns a list of the top 10 or so matching books.  
 
 ---
 
 ### 📚 User Library  
 
-#### `POST /books/`  
+#### `POST /user-books/`  
 Adds a book to the user's personal collection.  
 
 - **Body:**  
@@ -47,7 +47,7 @@ Adds a book to the user's personal collection.
     "author": "Author",
     "isbn": "123456789"
   }
-  
+  Response: Returns the saved book details.
 
 ## 📡 API Endpoints
 
