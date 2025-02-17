@@ -101,10 +101,10 @@ The AI suggests books based on themes, genres, and patterns.
   ```
 3. Set Up Frontend (Streamlit):
   Navigate to the frontend directory and install dependencies:
-    ```bash
-    cd frontend
-    uv pip install -r requirements.txt
-    ```
+  ```bash
+  cd frontend
+  uv pip install -r requirements.txt
+  ```
   Run the Streamlit app:
   ```bash
     streamlit run app.py
