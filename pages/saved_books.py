@@ -36,7 +36,6 @@ def get_user_from_api():
 
     if response.status_code == 200:
         user_data = response.json()
-        st.write("User data from API:", user_data)
         return user_data
     else:
         st.error(f"Failed to fetch user data: {response.text}")
@@ -383,8 +382,11 @@ if "username" not in st.session_state or not st.session_state.username:
     st.error("You need to be logged in to view saved books.")
     st.stop()
 
-saved_books = fetch_saved_books(st.session_state.user_id)
-
+try:
+    saved_books = fetch_saved_books(st.session_state.user_id) or []
+except Exception as e:
+    st.error(f"Error loading saved books {e}")
+    saved_books = []
 
 if saved_books:
     with st.expander("⚙️ Sort & Filter Options"):
@@ -418,4 +420,4 @@ if saved_books:
     for book in saved_books:
         display_book(book)
 else:
-    st.error("Failed to load saved books")
+    st.error("No saved books yet. Start adding some!")
