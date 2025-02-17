@@ -14,7 +14,7 @@ BOOK_COVER_URL = "https://books.google.com/books/content?id={bookid}&printsec=fr
 
 
 st.title("📚 Saved Books")
-st.write(f"User ID: {st.session_state.get('user_id')}")
+
 
 # Ensure session state variables exist
 st.session_state.setdefault("access_token", None)
@@ -25,6 +25,8 @@ st.session_state.setdefault("selected_book_details", None)
 st.session_state.setdefault("saved_book_id", None)
 st.session_state.setdefault("save_clicked", False)
 st.session_state.setdefault("page", "Saved Books")
+
+st.write(f"User ID: {st.session_state.get('user_id')}")
 
 
 def get_user_from_api():
