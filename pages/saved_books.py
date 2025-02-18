@@ -284,7 +284,7 @@ def display_book(book):
                     response = requests.patch(update_url, json=payload, headers=headers)
                     if response.ok:
                         st.success(f"✅ Book '{book['title']}' updated successfully!")
-                        st.session_state.saved_books = fetch_saved_books(user.id)
+                        st.session_state.saved_books = fetch_saved_books(user_id)
                         st.rerun()
                     else:
                         st.error("❌ Failed to update book.")
