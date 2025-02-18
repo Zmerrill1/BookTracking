@@ -30,7 +30,7 @@ jobs:
       - name: Create .env file
         run: |
           echo "DATABASE_URL=sqlite:///test.db" >> .env
-          echo "SECRET_KEY=your_secret_key" >> .env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
 
       - name: Run tests
         run: pytest --cov=BookTracking
