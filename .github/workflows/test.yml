@@ -32,10 +32,17 @@ jobs:
           uv pip install -r requirements.txt
           uv pip install pytest
 
-      - name: Create .env file
+      - name: Set environment variables
         run: |
-          echo "DATABASE_URL=sqlite:///test.db" >> .env
-          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> $GITHUB_ENV
+          echo "ALGORITHM=HS256" >> $GITHUB_ENV
+          echo "ACCESS_TOKEN_EXPIRE_MINUTES=30" >> $GITHUB_ENV
+          echo "API_URL=http://localhost:8000" >> $GITHUB_ENV
+          echo "OPENAI_API_KEY=dummy_key" >> $GITHUB_ENV
+          echo "POSTGRES_USER=test_user" >> $GITHUB_ENV
+          echo "POSTGRES_PASSWORD=test_password" >> $GITHUB_ENV
+          echo "POSTGRES_DB=test_db" >> $GITHUB_ENV
+          echo "DATABASE_URL=sqlite:///test.db" >> $GITHUB_ENV
 
       - name: Run tests
         run: .venv/bin/python -m pytest --cov=BookTracking
