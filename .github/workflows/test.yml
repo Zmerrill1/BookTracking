@@ -36,4 +36,6 @@ jobs:
           echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
 
       - name: Run tests
-        run: uv pip pytest --cov=BookTracking
+        run: |
+          source .venv/bin/activate
+          pytest --cov=BookTracking
