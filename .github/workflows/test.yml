@@ -30,7 +30,6 @@ jobs:
       - name: Install dependencies
         run: |
           uv pip install -r pyproject.toml
-          uv pip install --dev
 
       - name: Set environment variables
         run: |
