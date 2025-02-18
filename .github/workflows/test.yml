@@ -16,8 +16,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        run: uv pip install  # Ensure UV's Python setup is available
+      - name: Install UV
+        run: pip install uv  # Ensure UV is installed
 
       - name: Install the project dependencies
         run: uv sync --all-extras --dev  # Installs all dependencies, including dev
