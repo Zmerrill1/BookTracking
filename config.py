@@ -22,7 +22,11 @@ class Settings(BaseSettings):
 
 def load_settings():
     """Load settings from environment variables for FastAPI or from Streamlit secrets for Streamlit."""
-    if os.getenv("FLY_APP_NAME"):  # Check if running in Fly.io (FastAPI)
+    if os.getenv("GITHUB_ACTIONS") == "true":
+        print("Running in Github Actions - Using environment variables only")
+        return Settings()
+
+    elif os.getenv("FLY_APP_NAME"):  # Check if running in Fly.io (FastAPI)
         return Settings(
             SECRET_KEY=os.getenv("SECRET_KEY", "default_secret"),
             ALGORITHM=os.getenv("ALGORITHM", "HS256"),
