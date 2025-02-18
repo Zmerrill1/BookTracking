@@ -309,7 +309,7 @@ def display_book(book):
             elif recommendations is None:
                 st.info("Click the button to generate recommendations")
             elif recommendations:
-                for rec in recommendations:
+                for count, rec in enumerate(recommendations, start=1):
                     with st.container():
                         st.markdown(f"### 📕 {rec['title']}")
                         st.write(f"**Authors:** {', '.join(rec['authors'])}")
@@ -319,9 +319,10 @@ def display_book(book):
                         col1, col2 = st.columns([1, 1])
 
                         with col1:
+                            key = f"details_{rec['id']}_{count}"
                             if st.button(
                                 "Show Details",
-                                key=f"details_{rec['id']}",
+                                key=key,
                                 on_click=view_details,
                                 args=(rec["id"],),
                             ):
