@@ -59,6 +59,7 @@ Response: { "message": "Book deleted successfully" }
 
 #### POST /recommendations/
 Generates book recommendations based on a user's saved books.
+
 -**Body:**
   ```json
   { "books": ["Book 1", "Book 2"] }
