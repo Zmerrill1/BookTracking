@@ -116,16 +116,16 @@ Example Output:
       uvicorn app.main:app --reload
     ```
 3. Set Up Frontend (Streamlit):
-  This will be in a separate concurrent terminal.
-  Navigate to the frontend directory and install dependencies:
-  ```bash
-  cd frontend
-  uv sync
-  ```
-  Run the Streamlit app:
-  ```bash
-    streamlit run app.py
-  ```
+    This will be in a separate concurrent terminal.
+    Navigate to the frontend directory and install dependencies:
+    ```bash
+    cd frontend
+    uv sync
+    ```
+    Run the Streamlit app:
+    ```bash
+      streamlit run app.py
+    ```
 
     
 ## 🛠️ Tech Stack
