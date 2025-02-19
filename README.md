@@ -103,7 +103,7 @@ Example Output:
   ```
   Set up environment variables:
   ```bash
-    cp .env.example .env  Then edit with your API keys and DB settings
+    cp .env.example .env 
   ```
   Then edit .env with your API keys and database settings.
   
