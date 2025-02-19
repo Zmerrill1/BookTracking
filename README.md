@@ -36,7 +36,7 @@ Searches for books using the Google Books API.
 
 ### 📚 User Library  
 
-#### `POST /user-books/`  
+#### POST /user-books/
 Adds a book to the user's personal collection.  
 
 - **Body:**  
@@ -47,7 +47,7 @@ Adds a book to the user's personal collection.
   }
 - Response: Returns the saved book details.
 
-####  `GET /user-books/
+####  GET /user-books/
 Retrieves all books in the user's saved collection.
 
 #### `DELETE /user-books/{user_id/{book_id}/
@@ -57,7 +57,7 @@ Response: { "message": "Book deleted successfully" }
 
 ### 🤖 AI Recommendations
 
-#### `POST /recommendations/
+#### POST /recommendations/
 Generates book recommendations based on a user's saved books.
 -**Body:**
   ```json
