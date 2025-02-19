@@ -18,8 +18,11 @@ Checkout the live application on Streamlit: [ReadRadar](https://booktracking-huv
 ## 🚀 Features
 
 - **📖 Search Books**: Search for books using the Google Books API.
+  ![Book Search Screenshot](screenshots/book_search.png)
 - **📚 Track Your Reads**: Save books to a personal reading list.
+  ![Saved Books Screenshot](screenshots/saved_books.png)
 - **🤖 AI Recommendations**: Get book recommendations based on your interests.
+  ![AI Recommendation Screenshot](screenshots/ai_recommendation.png)
 - **📊 Interactive UI**: A user-friendly interface built with Streamlit.
 
 
