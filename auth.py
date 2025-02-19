@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 
@@ -28,13 +28,20 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)
+    request: Request,
+    token: str = Depends(oauth2_scheme),
+    session: Session = Depends(get_session),
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    if not token:
+        token = request.cookies.get("access_token")
+    if not token:
+        raise credentials_exception
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
@@ -71,6 +78,7 @@ def create_user(user: UserCreate, session: Session = Depends(get_session)):
 
 @router.post("/token", response_model=Token)
 def login_for_access_token(
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session),
 ):
@@ -81,6 +89,18 @@ def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    access_token = create_access_token({"sub": user.username})
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=True,
+        samesite="Lax",
+        max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+    )
+
     return {
         "access_token": user.get_token(),
         "token_type": "bearer",
@@ -91,6 +111,12 @@ def login_for_access_token(
             "created_at": user.created_at,
         },
     }
+
+
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie("access_token")
+    return {"message": "Successfully logged out"}
 
 
 @router.get("/users/me", response_model=UserRead)

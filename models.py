@@ -158,3 +158,12 @@ class UserBookResponse(SQLModel):
     status: str
     rating: Optional[int] = None
     notes: Optional[str] = None
+
+
+class RateLimit(SQLModel, table=True):
+    __tablename__ = "rate_limit"
+
+    id: int = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id", index=True, nullable=False)
+    endpoint: str = Field(nullable=False, index=True)
+    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())

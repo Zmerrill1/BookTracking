@@ -22,7 +22,11 @@ class Settings(BaseSettings):
 
 def load_settings():
     """Load settings from environment variables for FastAPI or from Streamlit secrets for Streamlit."""
-    if os.getenv("GITHUB_ACTIONS") == "true":
+    if "ALEMBIC" in os.environ:
+        print("Running Alembic = Using only environment variables!")
+        return Settings()
+
+    elif os.getenv("GITHUB_ACTIONS") == "true":
         print("Running in Github Actions - Using environment variables only")
         return Settings()
 
@@ -40,7 +44,9 @@ def load_settings():
             POSTGRES_PASSWORD=os.getenv("POSTGRES_PASSWORD", ""),
             POSTGRES_DB=os.getenv("POSTGRES_DB", ""),
         )
-    elif "database" in st.secrets:  # Check if running in Streamlit
+    elif (
+        not os.getenv("ALEMBIC") and "database" in st.secrets
+    ):  # Check if running in Streamlit
         print("✅ Found 'database' in secrets.")
         print(
             "🔹 DATABASE_URL from secrets:",

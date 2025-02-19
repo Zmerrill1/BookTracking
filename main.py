@@ -1,9 +1,9 @@
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Body, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import desc
 from sqlmodel import Session, select
@@ -18,6 +18,7 @@ from models import (
     BookDetails,
     BookRead,
     BookSearchResult,
+    RateLimit,
     SaveBookRequest,
     StatusEnum,
     User,
@@ -47,6 +48,7 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[f"{API_URL}"],
@@ -54,6 +56,38 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+RATE_LIMIT = 5
+TIME_WINDOW = 60
+
+
+def get_client_ip(request: Request) -> str:
+    x_forwarded_for = request.headers.get("X-Forwarded-For")
+    if x_forwarded_for:
+        return x_forwarded_for.split(",")[0]  # Get the first IP in the list
+    return request.client.host  # Fallback to request client IP
+
+
+def check_rate_limit(client_ip: int, endpoint: str, db: Session = Depends(get_session)):
+    time_threshold = datetime.utcnow() - timedelta(seconds=TIME_WINDOW)
+
+    request_count = (
+        db.query(RateLimit)
+        .filter(
+            RateLimit.user_id == client_ip,
+            RateLimit.endpoint == endpoint,
+            RateLimit.timestamp >= time_threshold,
+        )
+        .count()
+    )
+
+    if request_count >= RATE_LIMIT:
+        raise HTTPException(
+            status_code=429,
+            detail="Rate limit exceeded. Please wait before trying again.",
+        )
+    db.add(RateLimit(user_id=client_ip, endpoint=endpoint))
+    db.commit()
 
 
 def get_recommendations(
@@ -335,7 +369,12 @@ def save_google_book(
 
 
 @app.get("/books/{book_id}/recommendations", response_model=list[BookSearchResult])
-def get_book_recommendations(book_id: int, session: Session = Depends(get_session)):
+def get_book_recommendations(
+    book_id: int, request: Request, session: Session = Depends(get_session)
+):
+    client_ip = get_client_ip(request)
+    check_rate_limit(client_ip, "/books/recommendations/", session)
+
     book = session.get(Book, book_id)
 
     if not book:
@@ -347,8 +386,13 @@ def get_book_recommendations(book_id: int, session: Session = Depends(get_sessio
 
 
 @app.post("/recommend", response_model=list[BookSearchResult])
-def recommend_books(request: dict):
-    title = request.get("title")
+def recommend_books(
+    request: Request, session: Session = Depends(get_session), data: dict = Body(...)
+):
+    client_ip = get_client_ip(request)
+    check_rate_limit(client_ip, "/recommend", session)
+
+    title = data.get("title")
     if not title:
         raise HTTPException(status_code=400, detail="Title is required")
 
