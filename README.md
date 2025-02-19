@@ -89,22 +89,23 @@ Example Output:
 
 1. Clone the Repository:
    ```bash
-   git clone https://github.com/yourusername/book-tracker.git
+   git clone https://github.com/Zmerrill1/book-tracker.git
    cd book-tracker
    ```
 2. Set Up Backend (FastAPI):
   Ensure you have Python installed, then create a virtual environment:
     ```bash
     uv venv
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
     ```
   Install dependencies:
   ```bash
-    uv pip install -r requirements.txt
-    Set up environment variables:
+    uv sync
   ```
-
-  cp .env.example .env  Then edit with your API keys and DB settings
+  Set up environment variables:
+  ```bash
+    cp .env.example .env  Then edit with your API keys and DB settings
+  ```
+  Then edit .env with your API keys and database settings.
   
   Run database migrations:
   ```bash
@@ -115,10 +116,11 @@ Example Output:
     uvicorn app.main:app --reload
   ```
 3. Set Up Frontend (Streamlit):
+  This will be in a separate concurrent terminal.
   Navigate to the frontend directory and install dependencies:
   ```bash
   cd frontend
-  uv pip install -r requirements.txt
+  uv sync
   ```
   Run the Streamlit app:
   ```bash
