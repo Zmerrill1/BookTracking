@@ -26,7 +26,7 @@ Checkout the live application on Streamlit: [ReadRadar](https://booktracking-huv
 ## 📡 API Endpoints
 
 ### 🔍 Book Search  
-#### `GET /google-books/search?q={query}`  
+#### GET /google-books/search?q={query}`  
 Searches for books using the Google Books API.  
 
 - **Query Params:** `term` (book title, author, or keyword)  
@@ -50,7 +50,7 @@ Adds a book to the user's personal collection.
 ####  GET /user-books/
 Retrieves all books in the user's saved collection.
 
-#### `DELETE /user-books/{user_id/{book_id}/
+#### DELETE /user-books/{user_id/{book_id}/
 Removes a book from the collection.
 Response: { "message": "Book deleted successfully" }
 
