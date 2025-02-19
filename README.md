@@ -97,24 +97,24 @@ Example Output:
     ```bash
     uv venv
     ```
-  Install dependencies:
-  ```bash
-    uv sync
-  ```
-  Set up environment variables:
-  ```bash
-    cp .env.example .env 
-  ```
-  Then edit .env with your API keys and database settings.
-  
-  Run database migrations:
-  ```bash
-  alembic upgrade head
-  ```
-  Start the FastAPI server:
-  ```bash
-    uvicorn app.main:app --reload
-  ```
+    Install dependencies:
+    ```bash
+      uv sync
+    ```
+    Set up environment variables:
+    ```bash
+      cp .env.example .env 
+    ```
+    Then edit .env with your API keys and database settings.
+    
+    Run database migrations:
+    ```bash
+    alembic upgrade head
+    ```
+    Start the FastAPI server:
+    ```bash
+      uvicorn app.main:app --reload
+    ```
 3. Set Up Frontend (Streamlit):
   This will be in a separate concurrent terminal.
   Navigate to the frontend directory and install dependencies:
