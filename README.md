@@ -18,15 +18,18 @@ Checkout the live application on Streamlit: [ReadRadar](https://booktracking-huv
 ## 🚀 Features
 
 - **📖 Search Books**: Search for books using the Google Books API.
+  ![Book Search Screenshot](screenshots/book_search.png)
 - **📚 Track Your Reads**: Save books to a personal reading list.
+  ![Saved Books Screenshot](screenshots/saved_books.png)
 - **🤖 AI Recommendations**: Get book recommendations based on your interests.
+  ![AI Recommendation Screenshot](screenshots/ai_recommendation.png)
 - **📊 Interactive UI**: A user-friendly interface built with Streamlit.
 
 
 ## 📡 API Endpoints
 
 ### 🔍 Book Search  
-#### `GET /google-books/search?q={query}`  
+#### GET /google-books/search?q={query}`  
 Searches for books using the Google Books API.  
 
 - **Query Params:** `term` (book title, author, or keyword)  
@@ -36,7 +39,7 @@ Searches for books using the Google Books API.
 
 ### 📚 User Library  
 
-#### `POST /user-books/`  
+#### POST /user-books/
 Adds a book to the user's personal collection.  
 
 - **Body:**  
@@ -47,18 +50,19 @@ Adds a book to the user's personal collection.
   }
 - Response: Returns the saved book details.
 
-####  `GET /user-books/
+####  GET /user-books/
 Retrieves all books in the user's saved collection.
 
-#### `DELETE /user-books/{user_id/{book_id}/
+#### DELETE /user-books/{user_id/{book_id}/
 Removes a book from the collection.
 Response: { "message": "Book deleted successfully" }
 
 
 ### 🤖 AI Recommendations
 
-#### `POST /recommendations/
+#### POST /recommendations/
 Generates book recommendations based on a user's saved books.
+
 -**Body:**
   ```json
   { "books": ["Book 1", "Book 2"] }
@@ -88,41 +92,43 @@ Example Output:
 
 1. Clone the Repository:
    ```bash
-   git clone https://github.com/yourusername/book-tracker.git
+   git clone https://github.com/Zmerrill1/book-tracker.git
    cd book-tracker
    ```
 2. Set Up Backend (FastAPI):
   Ensure you have Python installed, then create a virtual environment:
     ```bash
     uv venv
-    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
     ```
-  Install dependencies:
-  ```bash
-    uv pip install -r requirements.txt
+    Install dependencies:
+    ```bash
+      uv sync
+    ```
     Set up environment variables:
-  ```
-
-  cp .env.example .env  Then edit with your API keys and DB settings
-  
-  Run database migrations:
-  ```bash
-  alembic upgrade head
-  ```
-  Start the FastAPI server:
-  ```bash
-    uvicorn app.main:app --reload
-  ```
+    ```bash
+      cp .env.example .env 
+    ```
+    Then edit .env with your API keys and database settings.
+    
+    Run database migrations:
+    ```bash
+    alembic upgrade head
+    ```
+    Start the FastAPI server:
+    ```bash
+      uvicorn app.main:app --reload
+    ```
 3. Set Up Frontend (Streamlit):
-  Navigate to the frontend directory and install dependencies:
-  ```bash
-  cd frontend
-  uv pip install -r requirements.txt
-  ```
-  Run the Streamlit app:
-  ```bash
-    streamlit run app.py
-  ```
+    This will be in a separate concurrent terminal.
+    Navigate to the frontend directory and install dependencies:
+    ```bash
+    cd frontend
+    uv sync
+    ```
+    Run the Streamlit app:
+    ```bash
+      streamlit run app.py
+    ```
 
     
 ## 🛠️ Tech Stack
