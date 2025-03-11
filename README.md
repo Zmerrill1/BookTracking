@@ -1,4 +1,4 @@
-# 📚 Book Tracker & Recommendation App
+# 📚 ReadRadar
 
 This is a FastAPI + Streamlit project that allows users to search for books, track their reading, and receive AI-generated book recommendations.
 
